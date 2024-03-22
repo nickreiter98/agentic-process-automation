@@ -2,6 +2,8 @@ import json
 from typing import Optional
 from func_agent import decoder as parser
 
+from openai import OpenAI
+
 import openai
 import os
 
@@ -18,15 +20,16 @@ Overall, Assistant is a powerful system that can help with a wide range of tasks
 class Agent:
     def __init__(
         self,
-        model_name: str = 'gpt-4-0613',
+        model: str = 'gpt-4-0613',
         functions: Optional[list] = None
     ):
-        openai.api_key = os.getenv('OPENAI_API_KEY')
-        self.model_name = model_name
+        self.model = model
         self.functions = self._parse_functions(functions)
         self.func_mapping = self._create_func_mapping(functions)
         self.chat_history = [{'role': 'system', 'content': sys_msg}]
-
+        self.client = OpenAI(
+            api_key=os.getenv('OPENAI_API_KEY'),
+        )
     def _parse_functions(self, functions: Optional[list]) -> Optional[list]:
         if functions is None:
             return None
@@ -39,16 +42,16 @@ class Agent:
 
     def _create_chat_completion(
         self, messages: list, use_functions: bool=True
-    ) -> openai.ChatCompletion:
+    ) -> openai.OpenAI:
         if use_functions and self.functions:
-            res = openai.ChatCompletion.create(
-                model=self.model_name,
+            res = self.client.chat.completions.create(
+                model=self.model,
                 messages=messages,
                 functions=self.functions
             )
         else:
-            res = openai.ChatCompletion.create(
-                model=self.model_name,
+            res = self.client.chat.completions.create(
+                model=self.model,
                 messages=messages
             )
         return res
@@ -75,11 +78,11 @@ class Agent:
                 raise ValueError(f"Unexpected finish reason: {finish_reason}")
 
     def _handle_function_call(self, res: openai.ChatCompletion):
-        self.internal_thoughts.append(res.choices[0].message.to_dict())
+        #self.internal_thoughts.append(res.choices[0].message.dict())
         func_name = res.choices[0].message.function_call.name
         args_str = res.choices[0].message.function_call.arguments
         result = self._call_function(func_name, args_str)
-        res_msg = {'role': 'function', 'name': func_name, 'content': (f"{result}")}
+        res_msg = {'role': 'assistant', 'content': (f"{result}")}
         self.internal_thoughts.append(res_msg)
 
     def _call_function(self, func_name: str, args_str: str):
@@ -110,5 +113,5 @@ class Agent:
         self.internal_thoughts = []
         self.chat_history.append({'role': 'user', 'content': query})
         res = self._generate_response()
-        self.chat_history.append(res.choices[0].message.to_dict())
+        self.chat_history.append(res.choices[0].message.dict())
         return res

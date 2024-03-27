@@ -1,6 +1,6 @@
 import json
 from typing import Optional
-from func_agent import decoder as parser
+from func_agent import decoder
 
 from openai import OpenAI
 
@@ -33,7 +33,7 @@ class Agent:
     def _parse_functions(self, functions: Optional[list]) -> Optional[list]:
         if functions is None:
             return None
-        return [parser.func_to_json(func) for func in functions]
+        return [decoder.func_to_json(func) for func in functions]
 
     def _create_func_mapping(self, functions: Optional[list]) -> dict:
         if functions is None:
@@ -56,62 +56,73 @@ class Agent:
             )
         return res
 
-    def _generate_response(self) -> openai.ChatCompletion:
-        while True:
-            print('.', end='')
-            res = self._create_chat_completion(
-                self.chat_history + self.internal_thoughts
-            )
-            finish_reason = res.choices[0].finish_reason
+    # def _generate_response(self) -> openai.ChatCompletion:
+    #     while True:
+    #         print('.', end='')
+    #         res = self._create_chat_completion(
+    #             self.chat_history #+ self.internal_thoughts
+    #         )
+    #         finish_reason = res.choices[0].finish_reason
 
-            if finish_reason == 'stop' or len(self.internal_thoughts) > 3:
-                # create the final answer
-                final_thought = self._final_thought_answer()
-                final_res = self._create_chat_completion(
-                    self.chat_history + [final_thought],
-                    use_functions=False
-                )
-                return final_res
-            elif finish_reason == 'function_call':
-                self._handle_function_call(res)
-            else:
-                raise ValueError(f"Unexpected finish reason: {finish_reason}")
+    #         if finish_reason == 'stop': #or len(self.internal_thoughts) > 3:
+    #             # create the final answer
+    #             #final_thought = self._final_thought_answer()
+    #             final_res = self._create_chat_completion(
+    #                 self.chat_history,
+    #                 use_functions=False
+    #             )
+    #             return final_res
+    #         elif finish_reason == 'function_call':
+    #             self._handle_function_call(res)
+    #         else:
+    #             raise ValueError(f"Unexpected finish reason: {finish_reason}")
+
+    def _generate_response(self) -> openai.ChatCompletion:
+        print('.', end='')
+        response = self._create_chat_completion(self.chat_history)
+        result = self._handle_function_call(response)
+
+        if result is not None:
+            self.chat_history.append({'role': 'assistant', 'content': f'{result}'})
+            result = self._create_chat_completion(self.chat_history, use_functions=False)
+        
+        return result
+        
 
     def _handle_function_call(self, res: openai.ChatCompletion):
         #self.internal_thoughts.append(res.choices[0].message.dict())
         func_name = res.choices[0].message.function_call.name
         args_str = res.choices[0].message.function_call.arguments
-        result = self._call_function(func_name, args_str)
-        res_msg = {'role': 'assistant', 'content': (f"{result}")}
-        self.internal_thoughts.append(res_msg)
+        call_result = self._call_function(func_name, args_str)
+        return call_result
+        
 
     def _call_function(self, func_name: str, args_str: str):
         args = json.loads(args_str)
         func = self.func_mapping[func_name]
-        res = func(**args)
-        return res
+        func_result =  func(**args)
+        return func_result
+        
     
-    def _final_thought_answer(self):
-        thoughts = ("To answer the question I will use these step by step instructions."
-                    "\n\n")
-        for thought in self.internal_thoughts:
-            if 'function_call' in thought.keys():
-                thoughts += (f"I will use the {thought['function_call']['name']} "
-                             "function to calculate the answer with arguments "
-                             + thought['function_call']['arguments'] + ".\n\n")
-            else:
-                thoughts += thought["content"] + "\n\n"
-        self.final_thought = {
-            'role': 'assistant',
-            'content': (f"{thoughts} Based on the above, I will now answer the "
-                        "question, this message will only be seen by me so answer with "
-                        "the assumption with that the user has not seen this message.")
-        }
-        return self.final_thought
+    # def _final_thought_answer(self):
+    #     thoughts = ("To answer the question I will use these step by step instructions."
+    #                 "\n\n")
+    #     for thought in self.internal_thoughts:
+    #         if 'function_call' in thought.keys():
+    #             thoughts += (f"I will use the {thought['function_call']['name']} "
+    #                          "function to calculate the answer with arguments "
+    #                          + thought['function_call']['arguments'] + ".\n\n")
+    #         else:
+    #             thoughts += thought["content"] + "\n\n"
+    #     self.final_thought = {
+    #         'role': 'assistant',
+    #         'content': (f"{thoughts} Based on the above, I will now answer the "
+    #                     "question, this message will only be seen by me so answer with "
+    #                     "the assumption with that the user has not seen this message.")
+    #     }
+    #     return self.final_thought
 
     def ask(self, query: str) -> openai.ChatCompletion:
-        self.internal_thoughts = []
         self.chat_history.append({'role': 'user', 'content': query})
         res = self._generate_response()
-        self.chat_history.append(res.choices[0].message.dict())
         return res

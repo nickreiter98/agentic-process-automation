@@ -2,6 +2,7 @@ import requests
 import json
 import os
 import base64
+import logging
 
 from dotenv import load_dotenv
 from email.message import EmailMessage
@@ -10,6 +11,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from openai import OpenAI
 
 load_dotenv('.env')
 
@@ -19,6 +21,7 @@ def d_get_current_weather(city: str):
     :param city: name of the city
     :return: current weather parameters
     """
+    logging.info(f'START: d_get_current_weather | args: {city}')
     url = 'http://api.weatherapi.com/v1/current.json'
     req = requests.get(
         url=url,
@@ -27,6 +30,7 @@ def d_get_current_weather(city: str):
             'q': city
         }
     )
+    logging.info(f'END: d_get_current_weather | response: {req.json()}')
     return req.json()
     
 
@@ -36,7 +40,7 @@ def d_get_coordinates_by_city(city: str):
     :param city: name of the city
     :return: coordinates of the city
     """
-    
+    logging.info(f'START: d_get_coordinates_by_city | args: {city}')
     url = 'https://nominatim.openstreetmap.org/search'
     req = requests.get(
         url=url,
@@ -45,6 +49,7 @@ def d_get_coordinates_by_city(city: str):
             'format': 'json'
         }
     )
+    logging.info(f'END: d_get_coordinates_by_city | response: {req.json()}')
     return req.json()
 
 def d_send_email_to(recipient: str, content: str, subject: str):
@@ -54,6 +59,7 @@ def d_send_email_to(recipient: str, content: str, subject: str):
     :param content: content of the email to be sent
     :param subject: subject of the email to be sent
     """
+    logging.info(f'START: d_send_email_to | args: {recipient}, {content}, {subject}')
     CLIENT_FILE = 'account_01.json'
     SCOPES = ['https://mail.google.com/']
 
@@ -89,6 +95,45 @@ def d_send_email_to(recipient: str, content: str, subject: str):
             .send(userId="me", body=create_message)
             .execute()
         )
+    logging.info(f'END: d_send_email_to | response: {send_message}')
+
+def d_write_text(text_content:str, context_info:str) -> str:
+    """formulates the text content based on the context information.
+    Is needed for created a nice sounding text output
+
+    :param text_content: text content to be formulated
+    :param context_info: context information shaping the text - informal, formal, audience, etc.
+    :return: nicely formulated text
+    """
+    logging.info(f'START: d_write_text | args: {text_content}, {context_info}')
+    client = OpenAI()
+
+    SYS_MESSAGE = """
+    You are a text writer and wants to be precise.
+    Write a nice sounding text and use for it content information and context.
+    The context is shaping the formality, the audience, the tone, etc.
+    """
+
+    prompt = f"""
+    Write a nice sounding text.
+    Include the following context information:
+    {text_content}
+    and formulate the text concerning following information:
+    {context_info}
+    """
+
+    res = client.chat.completions.create(
+        model='gpt-4-0613',
+        messages=[
+            {'role': 'system', 'content': SYS_MESSAGE},
+            {'role': 'user', 'content': prompt}
+        ]
+    )
+
+    output = res.choices[0].message.content
+
+    logging.info(f'END: d_write_text | response: {output}')
+    return output
 
 
  

@@ -1,19 +1,31 @@
-import json
 from typing import Optional
-from func_agent import decoder
+from misc import decoder
 
 from openai import OpenAI
 
 import openai
 import os
-
-sys_msg = """Assistant is a large language model trained by OpenAI.
-
+import logging
+import json
+sys_message = """Assistant is a large language model trained by OpenAI.
 Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussion on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
-
 Overall, Assistant is a powerful system that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
-
 Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
+"""
+
+content = """You are executing a process workflow.
+You are given a textual process workflow, the current task of the process worklfow and the input from the previous task if available.
+The process workflow provides more context whereat the current task is seen as the target variable.
+Chose based on the the provided information the appropriate task in the process workflow, including arguments.
+\n
+The textual workflow description:
+{}
+\n
+The current task:
+{}
+\n
+The input from the previous task:
+{}
 """
 
 
@@ -26,9 +38,9 @@ class Agent:
         self.model = model
         self.functions = self._parse_functions(functions)
         self.func_mapping = self._create_func_mapping(functions)
-        self.chat_history = [{'role': 'system', 'content': sys_msg}]
+        self.chat_history = [{'role': 'system', 'content': sys_message}]
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        
+
     def _parse_functions(self, functions: Optional[list]) -> Optional[list]:
         if functions is None:
             return None
@@ -121,7 +133,7 @@ class Agent:
     #     }
     #     return self.final_thought
 
-    def ask(self, query: str) -> openai.ChatCompletion:
-        self.chat_history.append({'role': 'user', 'content': query})
+    def ask(self, workflow:str, task:str, input:str) -> openai.ChatCompletion:
+        self.chat_history.append({'role': 'user', 'content': content.format(workflow, task, input)})
         res = self._generate_response()
         return res

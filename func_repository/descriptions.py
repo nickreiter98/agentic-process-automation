@@ -21,7 +21,6 @@ def d_get_current_weather(city: str):
     :param city: name of the city
     :return: current weather parameters
     """
-    logging.info(f'START: d_get_current_weather | args: {city}')
     url = 'http://api.weatherapi.com/v1/current.json'
     req = requests.get(
         url=url,
@@ -30,7 +29,6 @@ def d_get_current_weather(city: str):
             'q': city
         }
     )
-    logging.info(f'END: d_get_current_weather | response: {req.json()}')
     return req.json()
     
 
@@ -40,7 +38,6 @@ def d_get_coordinates_by_city(city: str):
     :param city: name of the city
     :return: coordinates of the city
     """
-    logging.info(f'START: d_get_coordinates_by_city | args: {city}')
     url = 'https://nominatim.openstreetmap.org/search'
     req = requests.get(
         url=url,
@@ -49,7 +46,6 @@ def d_get_coordinates_by_city(city: str):
             'format': 'json'
         }
     )
-    logging.info(f'END: d_get_coordinates_by_city | response: {req.json()}')
     return req.json()
 
 def d_send_email_to(recipient: str, content: str, subject: str):
@@ -59,7 +55,6 @@ def d_send_email_to(recipient: str, content: str, subject: str):
     :param content: content of the email to be sent
     :param subject: subject of the email to be sent
     """
-    logging.info(f'START: d_send_email_to | args: {recipient}, {content}, {subject}')
     CLIENT_FILE = 'account_01.json'
     SCOPES = ['https://mail.google.com/']
 
@@ -95,7 +90,6 @@ def d_send_email_to(recipient: str, content: str, subject: str):
             .send(userId="me", body=create_message)
             .execute()
         )
-    logging.info(f'END: d_send_email_to | response: {send_message}')
 
 def d_write_text(text_content:str, context_info:str) -> str:
     """formulates the text content based on the context information.
@@ -105,7 +99,6 @@ def d_write_text(text_content:str, context_info:str) -> str:
     :param context_info: context information shaping the text - informal, formal, audience, etc.
     :return: nicely formulated text
     """
-    logging.info(f'START: d_write_text | args: {text_content}, {context_info}')
     client = OpenAI()
 
     SYS_MESSAGE = """
@@ -123,7 +116,7 @@ def d_write_text(text_content:str, context_info:str) -> str:
     """
 
     res = client.chat.completions.create(
-        model='gpt-4-0613',
+        model='gpt-3.5-turbo',
         messages=[
             {'role': 'system', 'content': SYS_MESSAGE},
             {'role': 'user', 'content': prompt}
@@ -132,8 +125,17 @@ def d_write_text(text_content:str, context_info:str) -> str:
 
     output = res.choices[0].message.content
 
-    logging.info(f'END: d_write_text | response: {output}')
     return output
+
+def d_store_text_to_disc(text:str, file_name:str):
+    """stores any textual representation in a file
+
+    :param text: any representation containing string to be stored
+    :param file_name: name of the .txt file
+    """
+    with open(f'{file_name}.txt', 'w') as f:
+        f.write(text)
+
 
 
  

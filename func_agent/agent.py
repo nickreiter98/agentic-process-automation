@@ -7,23 +7,16 @@ import openai
 import os
 import logging
 import json
-sys_message = """Assistant is a large language model trained by OpenAI.
-Assistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussion on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.
-Overall, Assistant is a powerful system that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist.
-Assistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.
+sys_message = """
+You are executing single tasks of a process workflow given its input.
+You are precise and know the exact task you are executing.
+The tasks has been already extracted from the workflow.
+If the input is in accordance to the argument, dont chage the input, otherwise derive the argument from the input.
 """
 
-content = """You are executing a process workflow.
-You are given a textual process workflow, the current task of the process worklfow and the input from the previous task if available.
-The process workflow provides more context whereat the current task is seen as the target variable.
-Chose based on the the provided information the appropriate task in the process workflow, including arguments.
-\n
-The textual workflow description:
+content = """
+current task:
 {}
-\n
-The current task:
-{}
-\n
 The input from the previous task:
 {}
 """
@@ -32,7 +25,7 @@ The input from the previous task:
 class Agent:
     def __init__(
         self,
-        model: str = 'gpt-4-0613',
+        model: str = 'gpt-4',
         functions: Optional[list] = None
     ):
         self.model = model
@@ -51,89 +44,67 @@ class Agent:
             return {}
         return {func.__name__: func for func in functions}
 
-    def _create_chat_completion(
-        self, messages: list, use_functions: bool=True
-    ) -> openai.OpenAI:
-        if use_functions and self.functions:
-            res = self.client.chat.completions.create(
+    # def _generate_response(self) -> openai.ChatCompletion:
+    #     print('.', end='')
+    #     response = self._create_chat_completion(self.chat_history)
+    #     result = self._handle_function_call(response)
+
+    #     # if result is not None:
+    #     #     self.chat_history.append({'role': 'assistant', 'content': f'{result}'})
+    #     #     result = self._create_chat_completion(self.chat_history, use_functions=False)
+        
+    #     return result
+
+    # def _create_chat_completion(
+    #     self, messages: list, use_functions: bool=True
+    # ) -> openai.OpenAI:
+    #     if use_functions and self.functions:
+    #         res = self.client.chat.completions.create(
+    #             model=self.model,
+    #             messages=messages,
+    #             functions=self.functions
+    #         )
+    #     return res
+        
+
+    # def _handle_function_call(self, res: openai.ChatCompletion):
+    #     #self.internal_thoughts.append(res.choices[0].message.dict())
+    #     func_name = res.choices[0].message.function_call.name
+    #     args_str = res.choices[0].message.function_call.arguments
+    #     call_result = self._call_function(func_name, args_str)
+    #     return call_result
+        
+
+    # def _call_function(self, func_name: str, args_str: str):
+    #     args = json.loads(args_str)
+    #     func = self.func_mapping[func_name]
+    #     func_result =  func(**args)
+    #     return func_result
+        
+
+    # def ask(self, workflow: str, task:str, input:str) -> openai.ChatCompletion:
+    #     self.chat_history.append({'role': 'user', 'content': content.format(task, input)})
+    #     res = self._generate_response()
+    #     del(self.chat_history[-1])
+    #     return res
+
+    def execute_function_call(self, task:str, input:str):
+        self.chat_history.append({'role': 'user', 'content': content.format(task, input)})
+
+        response = self.client.chat.completions.create(
                 model=self.model,
-                messages=messages,
+                messages=self.chat_history,
                 functions=self.functions
             )
-        else:
-            res = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages
-            )
-        return res
-
-    # def _generate_response(self) -> openai.ChatCompletion:
-    #     while True:
-    #         print('.', end='')
-    #         res = self._create_chat_completion(
-    #             self.chat_history #+ self.internal_thoughts
-    #         )
-    #         finish_reason = res.choices[0].finish_reason
-
-    #         if finish_reason == 'stop': #or len(self.internal_thoughts) > 3:
-    #             # create the final answer
-    #             #final_thought = self._final_thought_answer()
-    #             final_res = self._create_chat_completion(
-    #                 self.chat_history,
-    #                 use_functions=False
-    #             )
-    #             return final_res
-    #         elif finish_reason == 'function_call':
-    #             self._handle_function_call(res)
-    #         else:
-    #             raise ValueError(f"Unexpected finish reason: {finish_reason}")
-
-    def _generate_response(self) -> openai.ChatCompletion:
-        print('.', end='')
-        response = self._create_chat_completion(self.chat_history)
-        result = self._handle_function_call(response)
-
-        if result is not None:
-            self.chat_history.append({'role': 'assistant', 'content': f'{result}'})
-            result = self._create_chat_completion(self.chat_history, use_functions=False)
         
-        return result
-        
+        func_name = response.choices[0].message.function_call.name
+        args_str = response.choices[0].message.function_call.arguments
 
-    def _handle_function_call(self, res: openai.ChatCompletion):
-        #self.internal_thoughts.append(res.choices[0].message.dict())
-        func_name = res.choices[0].message.function_call.name
-        args_str = res.choices[0].message.function_call.arguments
-        call_result = self._call_function(func_name, args_str)
-        return call_result
-        
-
-    def _call_function(self, func_name: str, args_str: str):
         args = json.loads(args_str)
         func = self.func_mapping[func_name]
         func_result =  func(**args)
-        return func_result
-        
-    
-    # def _final_thought_answer(self):
-    #     thoughts = ("To answer the question I will use these step by step instructions."
-    #                 "\n\n")
-    #     for thought in self.internal_thoughts:
-    #         if 'function_call' in thought.keys():
-    #             thoughts += (f"I will use the {thought['function_call']['name']} "
-    #                          "function to calculate the answer with arguments "
-    #                          + thought['function_call']['arguments'] + ".\n\n")
-    #         else:
-    #             thoughts += thought["content"] + "\n\n"
-    #     self.final_thought = {
-    #         'role': 'assistant',
-    #         'content': (f"{thoughts} Based on the above, I will now answer the "
-    #                     "question, this message will only be seen by me so answer with "
-    #                     "the assumption with that the user has not seen this message.")
-    #     }
-    #     return self.final_thought
 
-    def ask(self, workflow:str, task:str, input:str) -> openai.ChatCompletion:
-        self.chat_history.append({'role': 'user', 'content': content.format(workflow, task, input)})
-        res = self._generate_response()
-        return res
+        # del(self.chat_history[-1])
+        return func_result
+
+        

@@ -95,8 +95,8 @@ def d_write_text(text_content:str, context_info:str) -> str:
     """formulates the text content based on the context information.
     Is needed for created a nice sounding text output
 
-    :param text_content: text content to be formulated
-    :param context_info: context information shaping the text - informal, formal, audience, etc.
+    :param text_content: text plain content to be formulated
+    :param context_info: context information shaping the text - informal, formal, audience, recipient, etc.
     :return: nicely formulated text
     """
     client = OpenAI()
@@ -127,14 +127,34 @@ def d_write_text(text_content:str, context_info:str) -> str:
 
     return output
 
-def d_store_text_to_disc(text:str, file_name:str):
+def d_store_text_to_disc(content:str, file_name:str):
     """stores any textual representation in a file
 
-    :param text: any representation containing string to be stored
+    :param content: any representation containing string to be stored
     :param file_name: name of the .txt file
     """
-    with open(f'{file_name}.txt', 'w') as f:
-        f.write(text)
+    with open(f'{file_name}', 'w') as f:
+        f.write(content)
+
+def d_get_bank_account_statement(user_id:int) -> dict:
+    """provides the bank account statement of a user
+
+    :param use_id: id of the user
+    :return: bank account statement of the user
+    """
+    import random
+
+    account_type = random.choice(['business', 'private'])
+    balance = round(random.uniform(-10000, 100000), 2)
+    return {
+        'user_id': user_id,
+        'properties':{
+            'name': 'Max Muster',
+            'iban': 'DE123456789054672',
+            'bic': 'GENODEF1M03',},
+        'balance': balance,
+        'account_type': account_type
+    }
 
 
 

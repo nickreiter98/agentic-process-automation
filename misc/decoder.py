@@ -31,7 +31,7 @@ def extract_params(doc_str: str):
     return params
 
 
-def func_to_json(func):
+def func_to_json(func, format:str = 'normal'):
     # Check if the function is a functools.partial
     if isinstance(func, functools.partial) or isinstance(func, functools.partialmethod):
         fixed_args = func.keywords
@@ -69,12 +69,20 @@ def func_to_json(func):
                      argspec.args[i] not in inspect.getfullargspec(_func).defaults and argspec.args[
                          i] not in fixed_args.keys()]
     # then return everything in dict
-    return {
-        "name": func_name,
-        "description": func_description,
-        "parameters": {
-            "type": "object",
-            "properties": params
-        },
-        "required": _required
-    }
+
+    if format == 'normal':
+        return {
+            "name": func_name,
+            "description": func_description,
+            "parameters": {
+                "type": "object",
+                "properties": params
+            },
+            "required": _required
+        }
+    elif format == 'arguments':
+        return {
+            "parameters": params,
+            "required": _required
+        }
+

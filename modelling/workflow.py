@@ -1,3 +1,5 @@
+from directed_graph import DirectedGraph
+
 class Node:
     def __init__(self, name:str):
         self.name = name
@@ -70,4 +72,36 @@ class ModelGenerator:
     def create_exclusive_edge(self, origin:Node, target:Node, condition:str):
         edge = ExclusiveEdge(origin, target, condition)
         self.edges.append(edge)
+
+    def display_graph(self):
+        graph = DirectedGraph()
+
+        for edge in self.edges:
+            if isinstance(edge, ExclusiveEdge):
+                graph.add_edge(edge.start.name, edge.end.name, edge.condition)
+            elif isinstance(edge, Edge):
+                graph.add_edge(edge.start.name, edge.end.name)
+        
+        graph.display()
+
+    def get_iterable_graph(self) -> dict:
+        graph_dict = {}
+
+        for edge in self.edges:
+            if isinstance(edge, ExclusiveEdge):
+                if edge.start.name not in graph_dict:
+                    graph_dict[edge.start.name] = [(edge.end.name, edge.condition)]
+                else:
+                    graph_dict[edge.start.name].append((edge.end.name, edge.condition))
+            elif isinstance(edge, Edge):
+                if edge.start.name not in graph_dict:
+                    graph_dict[edge.start.name] = [(edge.end.name, 'empty')]
+                else:
+                    graph_dict[edge.start.name].append((edge.end.name, 'empty'))
+                    
+        return graph_dict
+
+
+
+
 

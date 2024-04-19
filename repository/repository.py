@@ -1,5 +1,5 @@
 import inspect
-import func_repository.descriptions as desc
+import repository.interfaces as intf
 
 class Repository:
     def __init__(self):
@@ -8,7 +8,7 @@ class Repository:
     def _get_functions(self):
         ls_func = []    
     
-        for name, obj in inspect.getmembers(desc):
+        for name, obj in inspect.getmembers(intf):
             if inspect.isfunction(obj) and name.startswith('d_'):
                 ls_func.append(obj)
 

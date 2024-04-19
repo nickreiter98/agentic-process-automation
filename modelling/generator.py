@@ -1,4 +1,4 @@
-from directed_graph import DirectedGraph
+from misc.directed_graph import DirectedGraph
 
 class Node:
     def __init__(self, name:str):
@@ -98,7 +98,7 @@ class ModelGenerator:
                     graph_dict[edge.start.name] = [(edge.end.name, 'empty')]
                 else:
                     graph_dict[edge.start.name].append((edge.end.name, 'empty'))
-                    
+
         return graph_dict
 
 

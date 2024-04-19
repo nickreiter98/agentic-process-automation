@@ -1,4 +1,4 @@
-import_statement = "from workflow import ModelGenerator"
+import_statement = "from modelling.generator import ModelGenerator"
 
 def add_role():
     return "Your role: you are an expert in process modeling," \
@@ -78,7 +78,9 @@ def code_generation():
 
 def add_few_shots():
     process_description = 'The user has to register for the app. After registering the user can chose a product and add it to the cart. The the user is checking out and pays the product. If the payment was successfull, the product is shipped. if no, the transaction is aborted ' 
-    code =  '''model = ModelGenerator()
+    code =  '''from modelling.generator import ModelGenerator
+    
+            model = ModelGenerator()
 
             start = model.start_event()
             register = model.task('register for app')

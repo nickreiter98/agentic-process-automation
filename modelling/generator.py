@@ -61,8 +61,8 @@ class ModelGenerator:
         # self.nodes.append(exclusive_gateway)
         return exclusive_gateway
 
-    def parallel_gateway(self, name:str):
-        parallel_gateway = ParallelGateway(name)
+    def parallel_gateway(self):
+        parallel_gateway = ParallelGateway()
         # self.nodes.append(parallel_gateway)
         return parallel_gateway
     
@@ -110,22 +110,22 @@ class ModelGenerator:
         
         graph.display()
 
-    def get_iterable_graph(self) -> dict:
-        graph_dict = {}
+    # def get_iterable_graph(self) -> dict:
+    #     graph_dict = {}
 
-        for edge in self.edges:
-            if isinstance(edge, ExclusiveEdge):
-                if edge.start.name not in graph_dict:
-                    graph_dict[edge.start.name] = [(edge.end.name, edge.condition)]
-                else:
-                    graph_dict[edge.start.name].append((edge.end.name, edge.condition))
-            elif isinstance(edge, Edge):
-                if edge.start.name not in graph_dict:
-                    graph_dict[edge.start.name] = [(edge.end.name, 'empty')]
-                else:
-                    graph_dict[edge.start.name].append((edge.end.name, 'empty'))
+    #     for edge in self.edges:
+    #         if isinstance(edge, ExclusiveEdge):
+    #             if edge.start.name not in graph_dict:
+    #                 graph_dict[edge.start.name] = [(edge.end.name, edge.condition)]
+    #             else:
+    #                 graph_dict[edge.start.name].append((edge.end.name, edge.condition))
+    #         elif isinstance(edge, Edge):
+    #             if edge.start.name not in graph_dict:
+    #                 graph_dict[edge.start.name] = [(edge.end.name, 'empty')]
+    #             else:
+    #                 graph_dict[edge.start.name].append((edge.end.name, 'empty'))
 
-        return graph_dict
+    #     return graph_dict
 
 
 

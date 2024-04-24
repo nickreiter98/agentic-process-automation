@@ -51,6 +51,8 @@ def generate_model(description:str):
 
     response = response.choices[0].message.content
     executable_code = extract_final_python_code(response)
+    with open('executabel_code.txt', 'w') as f:
+        f.write(executable_code)
     local_vars = {}
     exec(executable_code, globals(), local_vars)
 

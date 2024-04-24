@@ -1,44 +1,45 @@
 from misc.directed_graph import DirectedGraph
+from modelling.notation import Node, Edge, ExclusiveEdge, StartEvent, EndEvent, Task, ExclusiveGateway, ParallelGateway
 
-class Node:
-    def __init__(self, name:str):
-        self.name = name
+# class LabeledAdjacencyMatrix:
+#     def __init__(self, labels):
+#         self.labels = labels
+#         self.size = len(labels)
+#         self.matrix = [[0 for _ in range(self.size)] for _ in range(self.size)]
 
-class StartEvent(Node):
-    def __init__(self, name:str):
-        super().__init__(name)
+#     def _get_index(self, label):
+#         return self.labels.index(label)
 
-class EndEvent(Node):
-    def __init__(self, name:str):
-        super().__init__(name)
+#     def add_edge(self, label1, label2, weight=1):
+#         i, j = self._get_index(label1), self._get_index(label2)
+#         self.matrix[i][j] = weight
 
-class Task(Node):
-    def __init__(self, name:str):
-        super().__init__(name)
+#     def remove_edge(self, label1, label2):
+#         i, j = self._get_index(label1), self._get_index(label2)
+#         self.matrix[i][j] = 0
 
-class ExclusiveGateway(Node):
-    def __init__(self, name:str):
-        super().__init__(name)
+#     def has_edge(self, label1, label2):
+#         i, j = self._get_index(label1), self._get_index(label2)
+#         return self.matrix[i][j] != 0
 
-class ParallelGateway(Node):
-    def __init__(self, name:str):
-        super().__init__(name)
+#     def get_target_nodes(self, label):
+#         i = self._get_index(label)
+#         return [self.labels[j] for j in range(self.size) if self.matrix[i][j] != 0]
+    
+#     def get_target_nodes_with_condition(self, label):
+#         i = self._get_index(label)
+#         return {self.labels[j]: self.matrix[i][j] for j in range(self.size) if self.matrix[i][j] != 0}
 
-class Edge:
-    def __init__(self, start:Node, end:Node):
-        self.start = start
-        self.end = end
-
-class ExclusiveEdge(Edge):
-    def __init__(self, start:Node, end:Node, condition:str):
-        super().__init__(start, end)
-        self.condition = condition
+#     def display(self):
+#         print(' ', ' '.join(self.labels))
+#         for label, row in zip(self.labels, self.matrix):
+#             print(label, row)
 
 
 class ModelGenerator:
     def __init__(self):
         self.edges = []
-        self.nodes = []
+        self.graph = {}
 
     def start_event(self, name='Start'):
         start_event = StartEvent(name)
@@ -64,23 +65,48 @@ class ModelGenerator:
         parallel_gateway = ParallelGateway(name)
         # self.nodes.append(parallel_gateway)
         return parallel_gateway
+    
+    def _add_nodes_to_graph(self, origin:Node, target:Node, condition:str=None):
+        if condition == None:
+            target = (target, None)
+        else:
+            target = (target, condition)
+
+        if origin not in self.graph:
+            self.graph[origin] = [target]
+        else:
+            self.graph[origin].append(target)
+
+    def get_target_nodes(self, origin:Node):
+        return [target for target, _ in self.graph[origin]]
+    
+    def get_target_nodes_with_condition(self, origin:Node):
+        return {target: condition for target, condition in self.graph[origin]}
+    
+    def get_start_node(self):
+        for edge in self.edges:
+            if isinstance(edge.origin, StartEvent):
+                return edge.origin
+                break
 
     def create_edge(self, origin:Node, target:Node):
         edge = Edge(origin, target)
         self.edges.append(edge)
+        self._add_nodes_to_graph(origin, target)
 
     def create_exclusive_edge(self, origin:Node, target:Node, condition:str):
         edge = ExclusiveEdge(origin, target, condition)
         self.edges.append(edge)
+        self._add_nodes_to_graph(origin, target, condition)
 
     def display_graph(self):
         graph = DirectedGraph()
 
         for edge in self.edges:
             if isinstance(edge, ExclusiveEdge):
-                graph.add_edge(edge.start.name, edge.end.name, edge.condition)
+                graph.add_edge(edge.origin.name, edge.target.name, edge.condition)
             elif isinstance(edge, Edge):
-                graph.add_edge(edge.start.name, edge.end.name)
+                graph.add_edge(edge.origin.name, edge.target.name)
         
         graph.display()
 

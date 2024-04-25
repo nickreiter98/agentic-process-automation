@@ -1,6 +1,7 @@
 from misc.directed_graph import DirectedGraph
 from modelling.notation import Node, Edge, ExclusiveEdge, StartEvent, EndEvent, Task, ExclusiveGateway, ParallelGateway
 
+import networkx as nx
 import pm4py.objects.bpmn.obj as bpmn_obj
 from pm4py.visualization.bpmn import visualizer
 
@@ -70,8 +71,9 @@ class ModelGenerator:
             if isinstance(node, self.bpmn.StartEvent):
                 return node.get_name()
 
-    def get_graph(self):
-        return self.bpmn.get_graph()
+    def get_graph_as_adjacent_dict(self):
+        graph = self.bpmn.get_graph()
+        return nx.to_dict_of_dicts(graph)
 
     def view_bpmn(self):
         gviz = visualizer.apply(self.bpmn)

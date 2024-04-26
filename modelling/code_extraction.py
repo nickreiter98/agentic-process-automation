@@ -1,6 +1,6 @@
 import re
 
-def extract_final_python_code(response_text):
+def extract_final_python_code(response_text:str) -> str:
     python_code_pattern = r"```python(.*?)```"
     allowed_import_path = "modelling.generator"
     allowed_import_class = "ModelGenerator"

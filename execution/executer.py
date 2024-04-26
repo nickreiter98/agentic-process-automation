@@ -3,6 +3,7 @@ import json
 import logging
 import ast
 import json
+import multiprocessing
 
 from openai import OpenAI
 from pm4py.objects.bpmn.obj import BPMN
@@ -12,7 +13,7 @@ from execution.handler import FunctionSelector, ParameterAssignator
 from execution.prompts_exclusive_gateway import get_sys_message, get_prompt
 from modelling.generator import AdjacentDict
 
-f# Define type hints
+# Define type hints
 from typing import List, Dict, Tuple, TypeAlias, Callable
 StartEvent: TypeAlias = BPMN.StartEvent
 EndEvent: TypeAlias = BPMN.EndEvent
@@ -36,12 +37,12 @@ class Executor():
     def _get_functions_from_repository(self) -> List[Callable]:
         return Repository().functions
     
-    def _map_name_to_function(self, functions:List[Callable]) -> Dict[str:Callable]:
+    def _map_name_to_function(self, functions:List[Callable]) -> Dict[str,Callable]:
         if functions is None:
             return {}
         return {func.__name__: func for func in functions}
 
-    def _execute_exlusive_gateway(self, node:ExclusiveGateway, output) -> Node:
+    def _execute_exlusive_gateway(self, node:ExclusiveGateway, output:str) -> Node:
         node_2_condition = {n[0]: n[1] for n in self.process_modell.get_target_nodes(node)}
         condition_2_node = {c: n for n, c in node_2_condition.items()}
         conditions = [node_2_condition[n] for n in node_2_condition]
@@ -59,9 +60,9 @@ class Executor():
         print(f'Following condition is executed: {target_condition}')
         target_node = condition_2_node[target_condition]
 
-        return trgt_nd
+        return target_node
     
-    def _execute_task(self, node:BPMN.Task, output) -> Tuple[Node, str]:
+    def _execute_task(self, node:Task, output:str) -> Tuple[Node, str]:
         selector = FunctionSelector(functions=self.function_list)
         assignator = ParameterAssignator(functions=self.function_list)
 
@@ -71,10 +72,10 @@ class Executor():
         output = self.func_mapping[function](**arguments)
         target_node = self.process_modell.get_target_node(node)
 
-        return trgt_nd
+        return (target_node, output)
     
     
-    def _check_node_for_execution(self, current_node:Node, output) -> None:
+    def _check_node_for_execution(self, current_node:Node, output:str) -> None:
         while True:
             if self.process_modell.is_start_event(current_node):
                 print('Process is started')

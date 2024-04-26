@@ -40,8 +40,8 @@ class ModelGenerator:
         self.bpmn.add_node(exclusive_gateway)
         return exclusive_gateway
 
-    def create_parallel_gateway(self, name:str) -> ParallelGateway:
-        parallel_gateway = self.bpmn.ParallelGateway(name='X', gateway_direction='diverging')
+    def create_parallel_gateway(self, name:str='X') -> ParallelGateway:
+        parallel_gateway = self.bpmn.ParallelGateway(name=name, gateway_direction='diverging')
         self.bpmn.add_node(parallel_gateway)
         return parallel_gateway
 

@@ -133,7 +133,7 @@ def d_store_text_to_disc(content:str, file_name:str):
     :param content: any representation containing string to be stored
     :param file_name: name of the .txt file
     """
-    with open(f'{file_name}', 'w') as f:
+    with open(f'_output/{file_name}', 'w') as f:
         f.write(content)
 
 def d_get_bank_account_statement(user_id:int) -> dict:

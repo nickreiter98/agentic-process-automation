@@ -79,8 +79,9 @@ def code_generation():
 
 
 def add_few_shots():
-    process_description = 'The user has to register for the app. After registering the user can chose a product and add it to the cart. The the user is checking out and pays the product. If the payment was successfull, the product is shipped. if no, the transaction is aborted ' 
-    code =  '''from modelling.generator import ModelGenerator
+    process_description = ['The user has to register for the app. After registering the user can chose a product and add it to the cart. The the user is checking out and pays the product. If the payment was successfull, the product is shipped. if no, the transaction is aborted ',
+                            'Get the bank account of user 214423. Write an email to the user and also send a message to the support team.'] 
+    code =  ['''from modelling.generator import ModelGenerator
     
             model = ModelGenerator()
 
@@ -127,7 +128,7 @@ def add_few_shots():
             model.create_edge(write_email, end_1)
             model.create_edge(send_message, end_2)
             '''
-            ]
+        ]
     
     res = ''
     for i in range(len(process_description)):

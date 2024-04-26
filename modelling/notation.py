@@ -19,8 +19,8 @@ class ExclusiveGateway(Node):
         super().__init__(name)
 
 class ParallelGateway(Node):
-    def __init__(self):
-        super().__init__('O')
+    def __init__(self, name:str):
+        super().__init__(name)
 
 class Edge:
     def __init__(self, origin:Node, target:Node):

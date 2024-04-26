@@ -34,11 +34,9 @@ def add_least_to_most():
            " which is the label of the activity.\n" \
            " - exclusive_gateway(name). Use this function to model and generate a exclusive gateway object" \
            " It takes 1 string argument which assigns a name to the gatway "\
-           " The condition itself and the predecessors are then later provided by the function create_edge \n" \
-           " - parallel_gateway() Use this function to model a branch for parallel successors"\
-           " It takes 0 argumemts \n"\
+           " The condition itself and the predecessors are then later provided by the function create_edge" \
            " - create_edge(origin, target) adds an edge between two nodes. It takes 2 nodes as arguments," \
-           " which is the orgin and target node. Both arguments are Node objects \n"\
+           " which is the orgin and target node. Both arguments are Node objects"\
            " - create_exclusive_edge(origin, target, condition) adds an edge including condition"\
            " between an exclusive gateway and a task node. "\
            " It takes 3 arguments: the origin node, the target node, and a strink for the condition \n\n"
@@ -79,9 +77,8 @@ def code_generation():
 
 
 def add_few_shots():
-    process_description = ['The user has to register for the app. After registering the user can chose a product and add it to the cart. The the user is checking out and pays the product. If the payment was successfull, the product is shipped. if no, the transaction is aborted ',
-                           'Get the bank account of user 214423. Write an email to the user and also send a message to the support team.'] 
-    code =  ['''from modelling.generator import ModelGenerator
+    process_description = 'The user has to register for the app. After registering the user can chose a product and add it to the cart. The the user is checking out and pays the product. If the payment was successfull, the product is shipped. if no, the transaction is aborted ' 
+    code =  '''from modelling.generator import ModelGenerator
     
             model = ModelGenerator()
 
@@ -107,34 +104,10 @@ def add_few_shots():
             model.create_edge(transaction_aborted, end_2)
             model.create_exclusive_edge(payment_successfull, start_shipping, 'payment successfull')
             model.create_edge(start_shipping, end_1)
-            ''',
             '''
-            from modelling.generator import ModelGenerator
-            
-            model = ModelGenerator()
-            
-            start = model.start_event()
-            bank_account = model.task('get bank account of user 214423')
-            parallel_gateway = model.parallel_gateway()
-            write_email = model.task('write email to user')
-            send_message = model.task('send message to support team')
-            end_1 = model.end_event()
-            end_2 = model.end_event()
-
-            model.create_edge(start, bank_account)
-            model.create_edge(bank_account, parallel_gateway)
-            model.create_edge(parallel_gateway, write_email)
-            model.create_edge(parallel_gateway, send_message)
-            model.create_edge(write_email, end_1)
-            model.create_edge(send_message, end_2)
-            '''
-            ]
-    
-    res = ''
-    for i in range(len(process_description)):
-        res = res + f'EXAMPLE {i+1}:\n'
-        res = res + f'Process description for example {process_description[i]}\n'
-        res = res + f'Process model for example {code[i]}:\n\n'
+ 
+    res = f'Process description for example {process_description}\n'
+    res = res + f'Process model for example {code}:\n'
     return res + '\n'
 
 

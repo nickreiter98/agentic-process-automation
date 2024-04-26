@@ -16,9 +16,8 @@ import json
 import logging
 import ast
 import json
-import multiprocessing
 
-from typing import Callable, Tuple
+from typing import Callable
 
     
 class Executor():
@@ -54,12 +53,12 @@ class Executor():
         )
 
         response = ast.literal_eval(response.choices[0].message.content)
-        target_condition = str(list(response.values())[0])
-        target_node = condition_2_node[target_condition]
+        trgt_cndt = str(list(response.values())[0])
+        trgt_nd = condition_2_node[trgt_cndt]
 
-        return target_node
+        return trgt_nd
     
-    def _execute_task(self, node:Task, output) -> Tuple[Node, str]:
+    def _execute_task(self, node:Task, output) -> Node:
         selector = FunctionSelector(functions=self.function_list)
         assignator = ParameterAssignator(functions=self.function_list)
 
@@ -67,45 +66,23 @@ class Executor():
         arguments = assignator.assign(function, output, self.description)
         arguments = json.loads(arguments)
         output = self.func_mapping[function](**arguments)
-        target_node = self.process_modell.get_target_nodes(node)[0]
+        trgt_nd = self.process_modell.get_target_nodes(node)[0]
 
-        return (target_node, output)  
-    
-    
-    def _check_node_for_execution(self, current_node:Node, output):
-        while True:
-            if isinstance(current_node, StartEvent):
-                print('Process is started')
-                current_node = self.process_modell.get_target_nodes(current_node)[0]
-            elif isinstance(current_node, Task):
-                print(f'Following node is executed: {current_node.name}')
-                current_node, output = self._execute_task(current_node, output)
-            elif isinstance(current_node, ExclusiveGateway):
-                current_node = self._execute_exlusive_gateway(current_node, output)
-            elif isinstance(current_node, ParallelGateway):
-                target_nodes = self.process_modell.get_target_nodes(current_node)
-                processes = []
-                print('Parallelity started')
-                for node in target_nodes:
-                    processes.append(multiprocessing.Process(target=self._check_node_for_execution, args=(node, output)))
-                for process in processes:
-                    process.start()
-                for process in processes:
-                    process.join()
-                print('Parallelity ended')
-                break
-            elif isinstance(current_node, EndEvent):
-                print('Process is ended')
-                break
-
+        return trgt_nd
     
     def run(self):        
         current_node = self.process_modell.get_start_node()
         output = ''
 
-        self._check_node_for_execution(current_node, output)
-
-        
+        while True:
+            if isinstance(current_node, StartEvent):
+                current_node = self.process_modell.get_target_nodes(current_node)[0]
+            elif isinstance(current_node, Task):
+                current_node = self._execute_task(current_node, output)
+            elif isinstance(current_node, ExclusiveGateway):
+                current_node = self._execute_exlusive_gateway(current_node, output)
+            elif isinstance(current_node, EndEvent):
+                break
                 
                 
 

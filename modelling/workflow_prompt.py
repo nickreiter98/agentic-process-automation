@@ -28,13 +28,15 @@ def add_least_to_most():
            " is properly implemented and can be imported using the import statement:" \
            f" {import_statement}. ModelGenerator provides the functions" \
            " described below:\n" \
-           " - start_event() creates the start node object with the name 'Start'. It takes 0 string argument \n" \
-           " - end_event() creates the end node object with the name 'End'. It takes 0 string arguments \n" \
-           " - task(name) generates a task node object including its label name. It takes 1 string arguments," \
+           " - create_start_event() creates the start node object with the name 'Start'. It takes 0 string argument \n" \
+           " - create_end_event() creates the end node object with the name 'End'. It takes 0 string arguments \n" \
+           " - create_task(name) generates a task node object including its label name. It takes 1 string arguments," \
            " which is the label of the activity.\n" \
-           " - exclusive_gateway(name). Use this function to model and generate a exclusive gateway object" \
+           " - create_exclusive_gateway(name). Use this function to model and generate a exclusive gateway object" \
            " It takes 1 string argument which assigns a name to the gatway "\
-           " The condition itself and the predecessors are then later provided by the function create_edge" \
+           " The condition itself and the predecessors are then later provided by the function create_edge \n" \
+           " - create_parallel_gateway() Use this function to model a branch for parallel successors"\
+           " It takes 0 argumemts \n"\
            " - create_edge(origin, target) adds an edge between two nodes. It takes 2 nodes as arguments," \
            " which is the orgin and target node. Both arguments are Node objects"\
            " - create_exclusive_edge(origin, target, condition) adds an edge including condition"\
@@ -82,17 +84,17 @@ def add_few_shots():
     
             model = ModelGenerator()
 
-            start = model.start_event()
-            register = model.task('register for app')
-            chose_product = model.task('chose product')
-            add_product = model.task('add product to cart')
-            checkout = model.task('checkout')
-            payment = model.task('payment')
-            payment_successfull = model.exclusive_gateway('payment successfull')
-            transaction_aborted = model.task('transaction aborted')
-            start_shipping = model.task('start shipping')
-            end_1 = model.end_event()
-            end_2 = model.end_event()
+            start = model.create_start_event()
+            register = model.create_task('register for app')
+            chose_product = model.create_task('chose product')
+            add_product = model.create_task('add product to cart')
+            checkout = model.create_task('checkout')
+            payment = model.create_task('payment')
+            payment_successfull = model.create_exclusive_gateway('payment successfull')
+            transaction_aborted = model.create_task('transaction aborted')
+            start_shipping = model.create_task('start shipping')
+            end_1 = model.create_end_event()
+            end_2 = model.create_end_event()
 
             model.create_edge(start, register)
             model.create_edge(register, chose_product)
@@ -104,10 +106,34 @@ def add_few_shots():
             model.create_edge(transaction_aborted, end_2)
             model.create_exclusive_edge(payment_successfull, start_shipping, 'payment successfull')
             model.create_edge(start_shipping, end_1)
+            ''',
             '''
- 
-    res = f'Process description for example {process_description}\n'
-    res = res + f'Process model for example {code}:\n'
+            from modelling.generator import ModelGenerator
+            
+            model = ModelGenerator()
+            
+            start = model.create_start_event()
+            bank_account = model.create_task('get bank account of user 214423')
+            parallel_gateway = model.create_parallel_gateway()
+            write_email = model.create_task('write email to user')
+            send_message = model.create_task('send message to support team')
+            end_1 = model.create_end_event()
+            end_2 = model.create_end_event()
+
+            model.create_edge(start, bank_account)
+            model.create_edge(bank_account, parallel_gateway)
+            model.create_edge(parallel_gateway, write_email)
+            model.create_edge(parallel_gateway, send_message)
+            model.create_edge(write_email, end_1)
+            model.create_edge(send_message, end_2)
+            '''
+            ]
+    
+    res = ''
+    for i in range(len(process_description)):
+        res = res + f'EXAMPLE {i+1}:\n'
+        res = res + f'Process description for example {process_description[i]}\n'
+        res = res + f'Process model for example {code[i]}:\n\n'
     return res + '\n'
 
 

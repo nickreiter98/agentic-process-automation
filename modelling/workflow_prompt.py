@@ -1,56 +1,93 @@
 import_statement = "from modelling.generator import ModelGenerator"
 
 def add_role():
-    return "Your role: you are an expert in process modeling," \
-           " familiar with common" \
-           " process constructs such as exclusive and parallel gateways." \
-           " Your task is to analyze the textual description of a process and transform it into a process model in" \
-           " the BPMN language. When generating a model, be as precise" \
-           " as possible and capture all details of the process in the model. Also act as the process owner and use" \
-           " your expertise and familiarity with the" \
-           " process context to fill in any missing knowledge. \n\n"
+    return " Act as an expert in process modeling, familiar with the BPMN notation and "\
+            " the BPMN modelling approach. Your task is to analyze the textual description of a "\
+            " and acquire a BPMN model with the help of a self-defined ModelGenerator class derived from PM4PY's pm4py.objects.bpmn.obj classes. When "\
+            " generating a model, be as precise as possible and capture all details of the "\
+            " process in the model. Also act as the process owner and use your expertise and "\
+            " familiarity with the process context to fill in any missing knowledge."
 
 
 def add_knowledge():
-    return " Use the following knowledge about the underlying BPMN process modeling language:\n" \
-           " Our BPMN model is a sequential model and, thus, sequentially generated." \
-           " By starting with the start event, the tasks are chained to its predeccesors iteratively." \
-           " In case of branches like exclusive or parallel gateways, one branch is followed to the end before the " \
-           " other branch is chosen." \
-           " First at all the events, tasks and gateways are modeled as nodes" \
-           " Subsequently the edges are added to model the sequence of the nodes." \
-
+    return " Use the following knowledge about the underlying BPMN process modeling language:\n\n" \
+            " 1. Initialization:\n" \
+            " - Start Event: The process initiates with a Start Event, typically " \
+            " represented by a circle. This node marks the beginning of the process.  \n\n" \
+            " 2. Task Nodes:\n" \
+            " - Task Definition: Following the start event, tasks are sequentially"\
+            " modeled as nodes. These nodes are depicted as rectangles with rounded corners."\
+            " Each task represents an action or a step in the business process.\n"\
+            " - Examples of Tasks: These could include capturing order details, checking"\
+            " inventory, processing payments, or preparing shipments.\n\n"\
+            " 3. Gateway Nodes for Decision Points:\n"\
+            " - Inclusion of Gateways: Where the process requires decision-making or"\
+            " branching, gateways are used. These are represented as diamond shapes.\n"\
+            " - Types of Gateways:\n"\
+            "   - Exclusive Gateways: Used for making decisions where only one path can"\
+            "     be taken out of many based on conditions.\n"\
+            "   - Parallel Gateways: Allow multiple paths to proceed simultaneously.\n"\
+            " - Sequential Branch Handling: In the case of branches introduced by exclusive \n"\
+            " or parallel gateways, the process model will follow one branch to its conclusion"\
+            " before backtracking to explore another branch. This is handled sequentially in"\
+            " modeling, ensuring clarity and order in the process flow.\n\n"\
+            " 4. Modeling Sequence with Edges:\n"\
+            " - Connecting Nodes: Once all nodes (events, tasks, gateways) are placed, edges"\
+            " are drawn to connect these nodes, indicating the flow from one activity to the"\
+            " next.\n"\
+            " - Directional Flow: Arrows on the edges show the direction of the process"\
+            " flow. Each edge connects exactly one predecessor node to a successor node,"\
+            " conforming to the sequential nature of the model.\n\n"\
+            " 5. Iteration and Review:\n"\
+            " - Iterative Linking: The process of adding edges is iterative, ensuring that"\
+            " each node is properly linked to reflect the true sequence of operations in the"\
+            " business process.\n"\
+            " - Validation of Flow: As part of the modeling, it's essential to validate"\
+            " that the flow logically progresses from the start event, through tasks and"\
+            " decisions, to the conclusion of the process.\n\n"\
+            " 6. End Events:\n"\
+            " - Conclusion with End Event: The process concludes with an End Event,"\
+            " depicted as a thicker circle. This node signifies that the process has been"\
+            " completed, whether it ends after a task or as a result of a gateway decision.\n\n"\
+            " 7. Final Review:\n"\
+            " - Completeness and Correctness: The final step in the BPMN modeling process"\
+            " involves reviewing the entire flow for completeness and logical correctness. This"\
+            " includes checking that all conditional paths are accounted for and that the end"\
+            " events properly conclude all process threads."
 
 def add_least_to_most():
-    return " Provide the Python code that " \
-           " sequentially generate a BPMN model. Save the final model is the" \
-           " variable 'final_model'. Do not try to execute the code, just return it. Assume the class ModelGenerator" \
-           " is properly implemented and can be imported using the import statement:" \
-           f" {import_statement}. ModelGenerator provides the functions" \
-           " described below:\n" \
-           " - create_start_event() creates the start node object with the name 'Start'. It takes 0 string argument \n" \
-           " - create_end_event() creates the end node object with the name 'End'. It takes 0 string arguments \n" \
-           " - create_task(name) generates a task node object including its label name. It takes 1 string arguments," \
-           " which is the label of the activity.\n" \
-           " - create_exclusive_gateway(name). Use this function to model and generate a exclusive gateway object" \
-           " It takes 1 string argument which assigns a name to the gatway "\
-           " The condition itself and the predecessors are then later provided by the function create_edge \n" \
-           " - create_parallel_gateway() Use this function to model a branch for parallel successors"\
-           " It takes 0 argumemts \n"\
-           " - create_edge(origin, target) adds an edge between two nodes. It takes 2 nodes as arguments," \
-           " which is the orgin and target node. Both arguments are Node objects"\
-           " - create_exclusive_edge(origin, target, condition) adds an edge including condition"\
-           " between an exclusive gateway and a task node. "\
-           " It takes 3 arguments: the origin node, the target node, and a strink for the condition \n\n"
+    return " Provide the Python code that sequentially models the process as a BPMN model using the "\
+            " class Model Generator, which is derived from PM4PY's pm4py.objects.bpmn.obj classes. First, "\
+            " model the nodes (Gateway, Task, Start, End) and then the edges between the nodes. Do not "\
+            " execute the code; just provide the plain code for external execution.\n"\
+            f" Assume the class ModelGenerator is imported using the following statement: {import_statement}"\
+            " The ModelGenerator class offers these functions:\n"\
+            " - create_start_event() creates the start node object named 'Start'. It takes 0 string "\
+            " arguments and only one start event is possible.\n"\
+            " - create_end_event() creates the end node object named 'End'. It takes 0 string arguments.\n"\
+            " - create_task(name) generates a task node object with its label name. It takes 1 string "\
+            " argument for the activity label.\n"\
+            " - create_exclusive_gateway(name) generates an exclusive diverging gateway object named after the "\
+            " condition's title. It takes 1 string argument. Conditions and predecessors are set later with "\
+            " create_exclusive_edge.\n"\
+            " - create_parallel_gateway() generates a parallel diverging gateway object for branching to multiple "\
+            " targets. It takes 0 arguments.\n"\
+            " - create_edge(source, target) adds an edge between two nodes. It requires 2 node arguments: "\
+            " source and target.\n"\
+            " - create_exclusive_edge(source, target, condition) adds a conditional edge between an "\
+            " exclusive gateway and a task node. It takes 3 arguments: source node, target node, and "\
+            " condition. Include an opposite condition directing to the end event if there's only one "\
+            " condition leading to a target. Ensure all events have a successor or target. Also, "\
+            " note that only diverging gateways are used, no converging ones!\n\n"\
 
 
 def add_process_description(process_description):
-    return "This is the process description: " + process_description
+    return " This is the process description: " + process_description
 
 
 def self_evaluation():
-    return "Avoid common mistakes. " \
-           "First, ensure that the transitive closure of the generated partial orders" \
+    return " Avoid common mistakes. " \
+           " First, ensure that the transitive closure of the generated partial orders" \
            " do not violate irreflexivity. Verify that all optional/skippable and" \
            " repeatable parts are modeled correctly. Also validate that the same submodel" \
            " is not used multiple times (e.g., in xor then in partial_oder)! You have three ways for avoiding" \
@@ -73,61 +110,66 @@ def self_evaluation():
 
 
 def code_generation():
-    return "At the end of your response provide a only single Python code snippet (i.e., staring with '```python') that" \
-           " contains the full final code. " \
-           " Do not provide explanations or text\n\n"
+    return " At the end of your response provide a only single Python code snippet (i.e., staring with '```python') that" \
+           " contains the full final code. Keep in mind to " \
+           " not provide explanations or unnecessary text\n\n"
 
 
 def add_few_shots():
-    process_description = ['The user has to register for the app. After registering the user can chose a product and add it to the cart. The the user is checking out and pays the product. If the payment was successfull, the product is shipped. if no, the transaction is aborted ',
-                            'Get the bank account of user 214423. Write an email to the user and also send a message to the support team.'] 
-    code =  ['''from modelling.generator import ModelGenerator
+    process_description = [" The user has to register for the app. After registering the user can"\
+                           " chose a product and add it to the cart. The the user is checking out and pays the"\
+                           " product. If the payment was successfull, the product is shipped. if no,"\
+                           " the transaction is aborted ",
+                           " Get the bank account of user 214423. Write an email to the user and also send a"\
+                           " message to the support team."] 
+    code =  ["""```python
+    from modelling.generator import ModelGenerator
+
+    model = ModelGenerator()
+
+    start = model.create_start_event()
+    register = model.create_task('register for app')
+    chose_product = model.create_task('chose product')
+    add_product = model.create_task('add product to cart')
+    checkout = model.create_task('checkout')
+    payment = model.create_task('payment')
+    payment_successfull = model.create_exclusive_gateway('payment successfull')
+    transaction_aborted = model.create_task('transaction aborted')
+    start_shipping = model.create_task('start shipping')
+    end_1 = model.create_end_event()
+    end_2 = model.create_end_event()
+
+    model.create_edge(start, register)
+    model.create_edge(register, chose_product)
+    model.create_edge(chose_product, add_product)
+    model.create_edge(add_product, checkout)
+    model.create_edge(checkout, payment)
+    model.create_edge(payment, payment_successfull)
+    model.create_exclusive_edge(payment, transaction_aborted, 'payment failed')
+    model.create_edge(transaction_aborted, end_2)
+    model.create_exclusive_edge(payment_successfull, start_shipping, 'payment successfull')
+    model.create_edge(start_shipping, end_1)
+            ```""",
+            """```python
+    from modelling.generator import ModelGenerator
     
-            model = ModelGenerator()
+    model = ModelGenerator()
+    
+    start = model.create_start_event()
+    bank_account = model.create_task('get bank account of user 214423')
+    parallel_gateway = model.create_parallel_gateway()
+    write_email = model.create_task('write email to user')
+    send_message = model.create_task('send message to support team')
+    end_1 = model.create_end_event()
+    end_2 = model.create_end_event()
 
-            start = model.create_start_event()
-            register = model.create_task('register for app')
-            chose_product = model.create_task('chose product')
-            add_product = model.create_task('add product to cart')
-            checkout = model.create_task('checkout')
-            payment = model.create_task('payment')
-            payment_successfull = model.create_exclusive_gateway('payment successfull')
-            transaction_aborted = model.create_task('transaction aborted')
-            start_shipping = model.create_task('start shipping')
-            end_1 = model.create_end_event()
-            end_2 = model.create_end_event()
-
-            model.create_edge(start, register)
-            model.create_edge(register, chose_product)
-            model.create_edge(chose_product, add_product)
-            model.create_edge(add_product, checkout)
-            model.create_edge(checkout, payment)
-            model.create_edge(payment, payment_successfull)
-            model.create_exclusive_edge(payment, transaction_aborted, 'payment failed')
-            model.create_edge(transaction_aborted, end_2)
-            model.create_exclusive_edge(payment_successfull, start_shipping, 'payment successfull')
-            model.create_edge(start_shipping, end_1)
-            ''',
-            '''
-            from modelling.generator import ModelGenerator
-            
-            model = ModelGenerator()
-            
-            start = model.create_start_event()
-            bank_account = model.create_task('get bank account of user 214423')
-            parallel_gateway = model.create_parallel_gateway()
-            write_email = model.create_task('write email to user')
-            send_message = model.create_task('send message to support team')
-            end_1 = model.create_end_event()
-            end_2 = model.create_end_event()
-
-            model.create_edge(start, bank_account)
-            model.create_edge(bank_account, parallel_gateway)
-            model.create_edge(parallel_gateway, write_email)
-            model.create_edge(parallel_gateway, send_message)
-            model.create_edge(write_email, end_1)
-            model.create_edge(send_message, end_2)
-            '''
+    model.create_edge(start, bank_account)
+    model.create_edge(bank_account, parallel_gateway)
+    model.create_edge(parallel_gateway, write_email)
+    model.create_edge(parallel_gateway, send_message)
+    model.create_edge(write_email, end_1)
+    model.create_edge(send_message, end_2)
+            ```"""
         ]
     
     res = ''

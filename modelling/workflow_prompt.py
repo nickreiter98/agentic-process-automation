@@ -57,7 +57,8 @@ def add_knowledge():
 
 def add_least_to_most():
     return " Provide the Python code that sequentially models the process as a BPMN model using the "\
-            " class Model Generator, which is derived from PM4PY's pm4py.objects.bpmn.obj classes. First, "\
+            " class Model Generator, which is derived from PM4PY's pm4py.objects.bpmn.obj classes."\
+            " In the end intialize the model with the function initialize() to check as well the model for abnormalities. First,"\
             " model the nodes (Gateway, Task, Start, End) and then the edges between the nodes. Do not "\
             " execute the code; just provide the plain code for external execution.\n"\
             f" Assume the class ModelGenerator is imported using the following statement: {import_statement}"\
@@ -149,6 +150,8 @@ def add_few_shots():
     model.create_edge(transaction_aborted, end_2)
     model.create_exclusive_edge(payment_successfull, start_shipping, 'payment successfull')
     model.create_edge(start_shipping, end_1)
+             
+    model.initialize()
             ```""",
             """```python
     from modelling.generator import ModelGenerator
@@ -169,6 +172,8 @@ def add_few_shots():
     model.create_edge(parallel_gateway, send_message)
     model.create_edge(write_email, end_1)
     model.create_edge(send_message, end_2)
+
+    model.initialize()
             ```"""
         ]
     

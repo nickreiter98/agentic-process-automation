@@ -2,6 +2,8 @@ import functools
 import inspect
 import re
 
+from typing import Any, Dict, List, Union
+
 
 def type_mapping(dtype):
     if dtype == float:
@@ -29,7 +31,6 @@ def extract_params(doc_str: str):
                 if desc_match:
                     params[param_name] = desc_match
     return params
-
 
 def func_to_json(func, format:str = 'normal'):
     # Check if the function is a functools.partial

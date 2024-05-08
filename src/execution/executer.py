@@ -8,10 +8,11 @@ import multiprocessing
 from openai import OpenAI
 from pm4py.objects.bpmn.obj import BPMN
 
-from repository.repository import Repository
-from execution.handler import FunctionSelector, ParameterAssignator
-from execution.prompts_exclusive_gateway import get_sys_message, get_prompt
-from modelling.generator import AdjacentDict
+from src.repository.repository import Repository
+from src.execution.handler import FunctionSelector, ParameterAssignator
+from src.execution.prompts_exclusive_gateway import get_sys_message, get_prompt
+from src.modelling.generator import ModelGenerator
+from src.utils.open_ai import OpenAIConnection
 
 # Define type hints
 from typing import List, Dict, Tuple, TypeAlias, Callable
@@ -26,13 +27,16 @@ Edge: TypeAlias = BPMN.Flow
 class Executor():
     def __init__(
         self,
-        description: str,
-        process_modell: AdjacentDict,
+        workflow: str,
+        process_modell: ModelGenerator,
     ):
-        self.function_list = self._get_functions_from_repository()
-        self.func_mapping = self._map_name_to_function(self.function_list)
-        self.description = description
+        self.list_functions = self._get_functions_from_repository()
+        self.name_2_function = self._map_name_to_function(self.list_functions)
+        self.workflow = workflow
         self.process_modell = process_modell 
+        self.selector = FunctionSelector(functions=self.list_functions)
+        self.assignator = ParameterAssignator(functions=self.list_functions)
+        self.connection = OpenAIConnection()
         
     def _get_functions_from_repository(self) -> List[Callable]:
         return Repository().functions
@@ -45,61 +49,64 @@ class Executor():
     def _execute_exlusive_gateway(self, node:ExclusiveGateway, output:str) -> Node:
         node_2_condition = {n[0]: n[1] for n in self.process_modell.get_target_nodes(node)}
         condition_2_node = {c: n for n, c in node_2_condition.items()}
-        conditions = [node_2_condition[n] for n in node_2_condition]
+        conditions = [c for c in condition_2_node]
 
-        client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
-        chat_history = [{'role': 'system', 'content': get_sys_message()},
-                        {'role': 'user', 'content': get_prompt(node.name, conditions, output)}]
-        response = client.chat.completions.create(
-            model='gpt-3.5-turbo',
-            messages=chat_history
-        )
+        sys_message = {'role': 'system', 'content': get_sys_message()}
+        prompt = {'role': 'user', 'content': get_prompt(node.name, conditions, output)} 
+        message = [sys_message, prompt]
+        response = self.connection.request(message)
 
-        response = ast.literal_eval(response.choices[0].message.content)
-        target_condition = str(list(response.values())[0])
-        print(f'Following condition is executed: {target_condition}')
-        target_node = condition_2_node[target_condition]
+        try:
+            response = json.loads(response)
+        except Exception:
+            raise Exception('Selection of condition failed - Please try again')
+        
+        if len(response) > 1:
+            raise Exception('Multiple conditions selected - Only one condition can be selected')
+        else:
+            target_condition = str(list(response.values())[0])
+        
+        if target_condition == 'NO CONDITION FOUND':
+            raise Exception('No condition selected - No condition can be mapped to the activity')
+        else:
+            target_node = condition_2_node[target_condition]
 
+        logging.info(f'Following condition is executed: {target_condition}')
         return target_node
     
     def _execute_task(self, node:Task, output:str) -> Tuple[Node, str]:
-        selector = FunctionSelector(functions=self.function_list)
-        assignator = ParameterAssignator(functions=self.function_list)
-
-        function = selector.select(node, self.description)
-        arguments = assignator.assign(function, output, self.description)
+        function_name = self.selector.select(node, self.workflow)
+        arguments = self.assignator.assign(function_name, output, self.workflow)
         arguments = json.loads(arguments)
-        output = self.func_mapping[function](**arguments)
+        output = self.name_2_function[function_name](**arguments)
         target_node = self.process_modell.get_target_node(node)
-
         return (target_node, output)
-    
     
     def _check_node_for_execution(self, current_node:Node, output:str) -> None:
         while True:
             if self.process_modell.is_start_event(current_node):
-                print('Process is started')
+                logging.info('Process is started')
                 current_node = self.process_modell.get_target_node(current_node)
             elif self.process_modell.is_task(current_node):
-                print(f'Following node is executed: {current_node.get_name()}')
+                logging.info(f'Following node is executed: {current_node.get_name()}')
                 current_node, output = self._execute_task(current_node, output)
             elif self.process_modell.is_exclusive_gateway(current_node):
-                print(f'Following node is executed: {current_node.get_name()}')
+                logging.info(f'Following node is executed: {current_node.get_name()}')
                 current_node = self._execute_exlusive_gateway(current_node, output)
             elif self.process_modell.is_parallel_gateway(current_node):
                 target_nodes = [n[0] for n in self.process_modell.get_target_nodes(current_node)]
                 processes = []
-                print('Parallelity started')
+                logging.info('Parallelity started')
                 for node in target_nodes:
                     processes.append(multiprocessing.Process(target=self._check_node_for_execution, args=(node, output)))
                 for process in processes:
                     process.start()
                 for process in processes:
                     process.join()
-                print('Parallelity ended')
+                logging.info('Parallelity ended')
                 break
             elif self.process_modell.is_end_event(current_node):
-                print('Process is ended')
+                logging.info('Process is ended')
                 break
 
     

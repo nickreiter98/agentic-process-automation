@@ -1,7 +1,8 @@
 import logging
-import networkx as nx
-import pm4py.objects.bpmn.obj as bpmn_obj
 
+import networkx as nx
+
+import pm4py.objects.bpmn.obj as bpmn_obj
 from pm4py.visualization.bpmn import visualizer
 from pm4py.objects.bpmn.obj import BPMN
 
@@ -42,7 +43,8 @@ class ModelGenerator:
         self.bpmn.add_node(exclusive_gateway)
         return exclusive_gateway
 
-    def create_parallel_gateway(self, name:str='PARALLEL') -> ParallelGateway:
+    def create_parallel_gateway(self, id:str) -> ParallelGateway:
+        name = 'PARALLEL: ' + id
         parallel_gateway = self.bpmn.ParallelGateway(name=name, gateway_direction='diverging')
         self.bpmn.add_node(parallel_gateway)
         return parallel_gateway
@@ -84,9 +86,9 @@ class ModelGenerator:
     def get_target_node(self, source:Node) -> Node:
         out_arcs = source.get_out_arcs()
         if len(out_arcs) > 1:
-            raise Exception(f'The node {source.name} contains multiple target nodes. Please remove all edges but one!')
+            raise Exception(f'The node "{source.name}" contains multiple target nodes. Please remove all edges but one or check whether the node could be modelled as a parallel/exclusive gateway')
         if len(out_arcs) == 0:
-            raise Exception(f'The node {source.name} is not connected to a target node. Please create an edfge to one target node!')
+            raise Exception(f'The node "{source.name}" is not connected to a target node. Please create an edge to one target node!')
         return out_arcs[0].target
     
     def get_target_nodes(self, source:ExclusiveGateway|ParallelGateway) -> List[Tuple[Node, str]]:
@@ -128,7 +130,6 @@ class ModelGenerator:
             
     def _check_graph_for_abnormalities(self):
         logging.info('Checking graph for abnormalities')
-        print('Checking graph for abnormalities')
         for node in self.bpmn.get_graph():
             if self.is_start_event(node) or self.is_task(node):
                 _ = self.get_target_node(node)
@@ -138,7 +139,6 @@ class ModelGenerator:
             elif self.is_exclusive_gateway(node) or self.is_parallel_gateway:
                 _ = self.get_target_nodes(node)
                 self._check_source_nodes(node)
-        print('Graph is free of abnormalities')
         logging.info('Graph is free of abnormalities')
       
     def _check_source_nodes(self, node:Node) -> None:
@@ -148,7 +148,7 @@ class ModelGenerator:
             if not node.get_in_arcs():
                 raise Exception(f'The node "{node.name}" doesnt posses an source node. Please create an edge from a source node!')
             elif len(node.get_in_arcs()) > 1:
-                raise Exception(f'The node "{node.name}" posses too many source nodes. Please remove all but one edge!')
+                raise Exception(f'The node "{node.name}" posses too many source nodes. Please remove all but one edge. Check as well whether node should be a parallel stream!')
             else:
                 None
 

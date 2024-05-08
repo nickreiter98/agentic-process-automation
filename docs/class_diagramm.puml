@@ -1,0 +1,44 @@
+@startuml
+
+AdjacentDict --|> BPMN
+ModelGenerator --|> BPMN
+
+
+class BPMN {
+    uses classes and functions
+    from pm4py.objects.bpmn.obj
+    to create BPMN models
+}
+
+class ModelGenerator {
+    - bpmn : BPMN
+    - graph : Dictionary
+
+    + __init__() : None
+    + create_start_event(name : String = "Start") : StartEvent
+    + create_end_event(name : String = "End") : EndEvent
+    + create_task(name : String) : Task
+    + create_exclusive_gateway(name : String) : ExclusiveGateway
+    + create_parallel_gateway(name : String = "X") : ParallelGateway
+    + create_edge(source : Node, target : Node) : Edge
+    + create_exclusive_edge(source : Node, target : Node, condition : String) : Edge
+    + get_as_adjacent_dict() : AdjacentDict4
+    + view_bpmn() : None
+    + save_bpmn() : None
+}
+
+class AdjacentDict {
+    - graph : Dictionary
+
+    + __init__(graph : Dictionary) : None
+    + get_start_node() : StartEvent
+    + is_start_event(node : StartEvent) : bool
+    + is_end_event(node : EndEvent) : bool
+    + is_task(node : Task) : bool
+    + is_exclusive_gateway(node : ExclusiveGateway) : bool
+    + is_parallel_gateway(node : ParallelGateway) : bool
+    + get_target_node(source : Node) : Node
+    + get_target_nodes(source : ExclusiveGateway|ParallelGateway) : List[Tuple[Node, str]]
+}
+
+@enduml

@@ -55,13 +55,13 @@ def d_send_email_to(recipient: str, content: str, subject: str):
     :param content: content of the email to be sent
     :param subject: subject of the email to be sent
     """
-    CLIENT_FILE = 'account_01.json'
+    CLIENT_FILE = 'config/account_01.json'
     SCOPES = ['https://mail.google.com/']
 
     creds = None
 
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if os.path.exists('config/token.json'):
+        creds = Credentials.from_authorized_user_file('config/token.json', SCOPES)
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -69,7 +69,7 @@ def d_send_email_to(recipient: str, content: str, subject: str):
         else:
             flow = InstalledAppFlow.from_client_secrets_file(CLIENT_FILE, SCOPES)
             creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
+        with open('config/token.json', 'w') as token:
             token.write(creds.to_json())
 
     service = build('gmail', 'v1', credentials=creds)
@@ -133,7 +133,7 @@ def d_store_text_to_disc(content:str, file_name:str):
     :param content: any representation containing string to be stored
     :param file_name: name of the .txt file
     """
-    with open(f'_output/{file_name}', 'w') as f:
+    with open(f'output/{file_name}', 'w') as f:
         f.write(content)
 
 def d_get_bank_account_statement(user_id:int) -> dict:

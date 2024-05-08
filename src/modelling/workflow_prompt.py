@@ -71,8 +71,8 @@ def add_least_to_most():
             " - create_exclusive_gateway(name) generates an exclusive diverging gateway object named after the "\
             " condition's title. It takes 1 string argument. Conditions and predecessors are set later with "\
             " create_exclusive_edge.\n"\
-            " - create_parallel_gateway() generates a parallel diverging gateway object for branching to multiple "\
-            " targets. It takes 0 arguments.\n"\
+            " - create_parallel_gateway(index) generates a parallel diverging gateway object for branching to multiple "\
+            " targets. It takes 1 arguments, which provides an index.\n"\
             " - create_edge(source, target) adds an edge between two nodes. It requires 2 node arguments: "\
             " source and target.\n"\
             " - create_exclusive_edge(source, target, condition) adds a conditional edge between an "\
@@ -88,26 +88,10 @@ def add_process_description(process_description):
 
 def self_evaluation():
     return " Avoid common mistakes. " \
-           " First, ensure that the transitive closure of the generated partial orders" \
-           " do not violate irreflexivity. Verify that all optional/skippable and" \
-           " repeatable parts are modeled correctly. Also validate that the same submodel" \
-           " is not used multiple times (e.g., in xor then in partial_oder)! You have three ways for avoiding" \
-           " this depending on the case: (1)" \
-           " consider using loops to model cyclic behaviour; (2) if you instead want to create a second instance" \
-           " of the same submodel, consider creating a copy of it; (3) if none of these two cases apply, then" \
-           " your structure is not correct. Ensure that you correctly model xor/loop between larger complete" \
-           " alternative/loop paths (i.e., between full paths, not decision points). Finally, do not create partial" \
-           " orders as children of other partial orders. " \
-           " Instead, combine dependencies at the same hierarchical level to avoid nested partial orders." \
-           " Example of Correct Use of Partial Order:\n" \
-           "```python\n" \
-           "poset = partial_order(dependencies=[(A, B), (B, C)])\n" \
-           "```\n\n" \
-           "Example of Incorrect Use of Partial Order:\n" \
-           "```python\n" \
-           "poset_1 partial_order(dependencies=[(B, C)])\n" \
-           "poset_2 = partial_order(dependencies=[(A, poset)])\n" \
-           "```\n\n"
+           " pay attention that you indent all the code snippets to top-level."\
+           " Evaluate wheter one node contains more than one origin. If yes,"\
+           " it is likely to be a parallel stream, whereby the parallel streams"\
+           " contain the same task. Model the task in the parallel stream separately!"
 
 
 def code_generation():
@@ -160,7 +144,7 @@ def add_few_shots():
     
     start = model.create_start_event()
     bank_account = model.create_task('get bank account of user 214423')
-    parallel_gateway = model.create_parallel_gateway()
+    parallel_gateway_1 = model.create_parallel_gateway('1')
     write_email = model.create_task('write email to user')
     send_message = model.create_task('send message to support team')
     end_1 = model.create_end_event()
@@ -168,8 +152,8 @@ def add_few_shots():
 
     model.create_edge(start, bank_account)
     model.create_edge(bank_account, parallel_gateway)
-    model.create_edge(parallel_gateway, write_email)
-    model.create_edge(parallel_gateway, send_message)
+    model.create_edge(parallel_gateway_1, write_email)
+    model.create_edge(parallel_gateway_1, send_message)
     model.create_edge(write_email, end_1)
     model.create_edge(send_message, end_2)
 
@@ -191,6 +175,7 @@ def create_model_generation_prompt(process_description: str) -> str:
     prompt = prompt + add_least_to_most()
     prompt = prompt + add_few_shots()
     prompt = prompt + code_generation()
+    prompt = prompt + self_evaluation()
     prompt = prompt + add_process_description(process_description)
 
     return prompt

@@ -1,5 +1,5 @@
 import inspect
-import repository.interfaces as intf
+import src.repository.interfaces as intf
 
 class Repository:
     def __init__(self):

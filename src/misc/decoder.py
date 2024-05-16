@@ -2,18 +2,29 @@ import functools
 import inspect
 import re
 
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Literal
 
 
 def type_mapping(dtype):
+    print(str(dtype))
     if dtype == float:
         return "number"
     elif dtype == int:
         return "integer"
     elif dtype == str:
         return "string"
+    elif getattr(dtype, '__origin__', None) is Literal:
+        return list(dtype.__args__)
+    elif re.match(r"<module '(.+)' from", str(dtype)) is not None:
+        match = re.match(r"<module '(.+)' from", str(dtype)).group()
+        string = match.split(" ")[1].replace("'", "")
+        return string
+    elif re.match(r"<class '(.+)'>", str(dtype)) is not None:
+        match = re.match(r"<class '(.+)'>", str(dtype)).group()
+        string = match.split(" ")[1].replace("'", "")
+        return string
     else:
-        return "string"
+        return str(dtype)
 
 
 def extract_params(doc_str: str):

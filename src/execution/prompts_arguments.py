@@ -59,6 +59,7 @@ def add_function_repository(function_repository:list[dict]):
 
 def add_output_pattern():
      return (" +++ TEMPLATE PATTERN +++\n" 
+             " Only provide the output in the output pattern. Dont return any explanation or reasoning."
              " Use the provided template below to return the output: \n"
              " {\"parameter\": \"value\", \"parameter\": \"value\"} \n"
              " - parameter: place holder for the parameter to be assigned.\n"

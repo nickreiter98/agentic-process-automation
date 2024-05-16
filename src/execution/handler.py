@@ -35,11 +35,11 @@ class FunctionSelector:
         else:
             return [decoder.func_to_json(func) for func in functions]
 
-    def select(self, node:Node) -> str:
+    def select(self, node:Node, workflow:str) -> str:
         sys_message = {'role': 'system',
                         'content': prompts_selection.get_sys_message(self.list_parsed_functions)}
         prompt = {'role': 'user',
-                   'content': prompts_selection.get_prompt(node)}
+                   'content': prompts_selection.get_prompt(node, workflow)}
         
         message = [sys_message, prompt]
         response = self.connection.request(message)

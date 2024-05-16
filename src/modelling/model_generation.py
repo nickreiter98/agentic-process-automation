@@ -16,10 +16,15 @@ def generate_model(description:str, max_iteration:int = 5) -> str:
     
     for i in range(max_iteration):
         try:
+            logging.info(f'Iteration {i+1} of model generation')
             response = connection.request(messages)
             messages.append({'role': 'system', 'content': response})
             executable_code = extract_final_python_code(response)
-            return _execute_code(executable_code)
+            with open('executabel_code.txt', 'w') as f:
+                f.write(executable_code)
+            local_vars = {}
+            exec(executable_code, globals(), local_vars)
+            return local_vars['model']
         except Exception as e:
             error_description = str(e)
             new_message = f" Executing your code led to an error! Please update the model to fix the error." \
@@ -28,11 +33,5 @@ def generate_model(description:str, max_iteration:int = 5) -> str:
             messages.append({'role': 'user', 'content': new_message})
 
 
-def _execute_code(executable_code:str):
-    #try:
-    with open('executabel_code.txt', 'w') as f:
-        f.write(executable_code)
-    local_vars = {}
-    exec(executable_code, globals(), local_vars)
-    return local_vars['model']
+    
     

@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-import ast
+import re
 import json
 import multiprocessing
 
@@ -66,32 +66,37 @@ class Executor():
         else:
             target_condition = str(list(response.values())[0])
         
-        if target_condition == 'NO CONDITION FOUND':
+        if re.findall('\bNO CONDITION FOUND\b', target_condition, re.IGNORECASE):
             raise Exception('No condition selected - No condition can be mapped to the activity')
         else:
             target_node = condition_2_node[target_condition]
 
-        logging.info(f'Following condition is executed: {target_condition}')
+        logging.info(f'Condition is selected: {target_condition}')
         return target_node
     
     def _execute_task(self, node:Task, output:str) -> Tuple[Node, str]:
         function_name = self.selector.select(node, self.workflow)
         arguments = self.assignator.assign(function_name, output, self.workflow)
+        logging.info(f'{function_name} is selected with arguments: {arguments}')
         arguments = json.loads(arguments)
-        output = self.name_2_function[function_name](**arguments)
+        try:
+            output = self.name_2_function[function_name](**arguments)
+        except Exception as e:
+            raise(f'Execution of interface function from the repository failed: {e}')
+        
         target_node = self.process_modell.get_target_node(node)
         return (target_node, output)
     
     def _check_node_for_execution(self, current_node:Node, output:str) -> None:
         while True:
             if self.process_modell.is_start_event(current_node):
-                logging.info('Process is started')
+                logging.info('Process started')
                 current_node = self.process_modell.get_target_node(current_node)
             elif self.process_modell.is_task(current_node):
-                logging.info(f'Following node is executed: {current_node.get_name()}')
+                logging.info(f'Execution of task: {current_node.get_name()}')
                 current_node, output = self._execute_task(current_node, output)
             elif self.process_modell.is_exclusive_gateway(current_node):
-                logging.info(f'Following node is executed: {current_node.get_name()}')
+                logging.info(f'Execution of parallel gateway: {current_node.get_name()}')
                 current_node = self._execute_exlusive_gateway(current_node, output)
             elif self.process_modell.is_parallel_gateway(current_node):
                 target_nodes = [n[0] for n in self.process_modell.get_target_nodes(current_node)]
@@ -106,7 +111,7 @@ class Executor():
                 logging.info('Parallelity ended')
                 break
             elif self.process_modell.is_end_event(current_node):
-                logging.info('Process is ended')
+                logging.info('Process ended')
                 break
 
     

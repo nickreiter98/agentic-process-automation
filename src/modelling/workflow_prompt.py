@@ -1,4 +1,4 @@
-import_statement = "from modelling.generator import ModelGenerator"
+import_statement = "from src.modelling.generator import ModelGenerator"
 
 def add_role():
     return " Act as an expert in process modeling, familiar with the BPMN notation and "\
@@ -94,10 +94,11 @@ def self_evaluation():
            " contain the same task. Model the task in the parallel stream separately!"
 
 
-def code_generation():
+def add_output_pattern():
     return " At the end of your response provide a only single Python code snippet (i.e., staring with '```python') that" \
            " contains the full final code. Keep in mind to " \
-           " not provide explanations or unnecessary text\n\n"
+           " not provide explanations or unnecessary text."\
+           " Als do not indent any code snippet. The code snippet should be executable as a script"\
 
 
 def add_few_shots():
@@ -108,7 +109,7 @@ def add_few_shots():
                            " Get the bank account of user 214423. Write an email to the user and also send a"\
                            " message to the support team."] 
     code =  ["""```python
-    from modelling.generator import ModelGenerator
+    from src.modelling.generator import ModelGenerator
 
     model = ModelGenerator()
 
@@ -138,7 +139,7 @@ def add_few_shots():
     model.initialize()
             ```""",
             """```python
-    from modelling.generator import ModelGenerator
+    from src.modelling.generator import ModelGenerator
     
     model = ModelGenerator()
     
@@ -174,7 +175,7 @@ def create_model_generation_prompt(process_description: str) -> str:
     prompt = prompt + add_knowledge()
     prompt = prompt + add_least_to_most()
     prompt = prompt + add_few_shots()
-    prompt = prompt + code_generation()
+    prompt = prompt + add_output_pattern()
     prompt = prompt + self_evaluation()
     prompt = prompt + add_process_description(process_description)
 

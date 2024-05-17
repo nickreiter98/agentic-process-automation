@@ -1,8 +1,23 @@
 @startuml
 
-AdjacentDict --|> BPMN
-ModelGenerator --|> BPMN
+ModelGenerator *-- BPMN
+App *-- ModelGenerator 
+App *-- Executor
+App *-- OpenAIConnection
+Executor *-- ModelGenerator
+Executor *-- FunctionSelector
+Executor *-- ParameterAssignator
+FunctionSelector *-- OpenAIConnection
+ParameterAssignator *-- OpenAIConnection
+ParameterAssignator *-- Repository
+FunctionSelector *-- Repository
 
+class App {
+    script where a process modell is
+    generated and then executed. 
+    Also provides graphical UI 
+}
+    
 
 class BPMN {
     uses classes and functions
@@ -11,34 +26,77 @@ class BPMN {
 }
 
 class ModelGenerator {
-    - bpmn : BPMN
-    - graph : Dictionary
+  -bpmn: BPMN
+  -graph: AdjacentDict
 
-    + __init__() : None
-    + create_start_event(name : String = "Start") : StartEvent
-    + create_end_event(name : String = "End") : EndEvent
-    + create_task(name : String) : Task
-    + create_exclusive_gateway(name : String) : ExclusiveGateway
-    + create_parallel_gateway(name : String = "X") : ParallelGateway
-    + create_edge(source : Node, target : Node) : Edge
-    + create_exclusive_edge(source : Node, target : Node, condition : String) : Edge
-    + get_as_adjacent_dict() : AdjacentDict4
-    + view_bpmn() : None
-    + save_bpmn() : None
+  +__init__()
+  .. generation of BPMN model ..
+  +create_start_event(name: str): StartEvent
+  +create_end_event(name: str): EndEvent
+  +create_task(name: str): Task
+  +create_exclusive_gateway(name: str): ExclusiveGateway
+  +create_parallel_gateway(id: str): ParallelGateway
+  +create_edge(source: Node, target: Node): Edge
+  +create_exclusive_edge(source: Node, target: Node, condition: str): Edge
+  .. retrieval from information ..
+  +get_start_node(): StartEvent|List[StartEvent]
+  +is_start_event(node: StartEvent): bool
+  +is_end_event(node: EndEvent): bool
+  +is_task(node: Task): bool
+  +is_exclusive_gateway(node: ExclusiveGateway): bool
+  +is_parallel_gateway(node: ParallelGateway): bool
+  +get_target_node(source: Node): Node
+  +get_target_nodes(source: ExclusiveGateway|ParallelGateway): List[Tuple[Node, str]]
+  +initialize()
+  +get_as_adjacent_dict()
+  .. display BPMN model ..
+  +view_bpmn(): None
+  +save_bpmn(): None
 }
 
-class AdjacentDict {
-    - graph : Dictionary
+class Executor {
+  -list_functions: List[Callable]
+  -name_2_function: Dict[str, Callable]
+  -workflow: str
+  -process_modell: ModelGenerator
+  -selector: FunctionSelector
+  -assignator: ParameterAssignator
+  -connection: OpenAIConnection
 
-    + __init__(graph : Dictionary) : None
-    + get_start_node() : StartEvent
-    + is_start_event(node : StartEvent) : bool
-    + is_end_event(node : EndEvent) : bool
-    + is_task(node : Task) : bool
-    + is_exclusive_gateway(node : ExclusiveGateway) : bool
-    + is_parallel_gateway(node : ParallelGateway) : bool
-    + get_target_node(source : Node) : Node
-    + get_target_nodes(source : ExclusiveGateway|ParallelGateway) : List[Tuple[Node, str]]
+  +__init__(workflow: str, process_modell: ModelGenerator)
+  -_execute_exlusive_gateway(node: ExclusiveGateway, output: str): Node
+  -_execute_task(node: Task, output: str): Tuple[Node, str]
+  -_check_node_for_execution(current_node: Node, output: str): None
+  +run(): None
 }
 
+class FunctionSelector {
+  -connection: OpenAIConnection
+  -list_parsed_functions: Optional[List]
+
+  +__init__(functions: Optional[List])
+  +select(node: Node, workflow: str): str
+}
+
+class ParameterAssignator {
+  -connection: OpenAIConnection
+  -list_parsed_functions: Optional[List]
+
+  +__init__(functions: Optional[List])
+  +assign(function_name: str, output: str, workflow: str): str
+}
+
+class OpenAIConnection {
+  -model: str
+  -client: OpenAI
+
+  +__init__()
+  +request(messages: List[Dict[str, str]]): str
+}
+
+class Repository {
+  -functions: List[Callable]
+
+  +__init__()
+}
 @enduml

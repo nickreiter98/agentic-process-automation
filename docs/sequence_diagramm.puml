@@ -1,0 +1,20 @@
+@startuml
+actor User
+
+User -> App: triggers
+App -> ModelGenerator: generates process model
+ModelGenerator --> App: returns process model
+App -> Executor: sends process model
+rnote over Executor: iterates through \nprocess model
+Executor -> FunctionSelector: sends function to be selected
+FunctionSelector -> Repository: requests function repository
+Repository --> FunctionSelector: returns function repository
+FunctionSelector --> Executor: returns selected function
+Executor -> ParameterAssignator: sends function to be assigned
+ParameterAssignator -> Repository: requests function head
+Repository --> ParameterAssignator: returns function head
+ParameterAssignator --> Executor: returns arguments to be assigned to function
+Executor -> Executor: executes selected function\n with assigned arguments
+Executor --> App:
+App --> User:
+@enduml

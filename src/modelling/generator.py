@@ -20,7 +20,7 @@ Edge: TypeAlias = BPMN.Flow
 class ModelGenerator:
     def __init__(self):
         self.bpmn = bpmn_obj.BPMN()
-        self.graph: AdjacentDict = None
+        self.graph = None
 
     def create_start_event(self, name:str='Start') -> StartEvent:
         start_event = self.bpmn.StartEvent(name=name)
@@ -61,13 +61,9 @@ class ModelGenerator:
 
     def get_start_node(self) -> StartEvent|List[StartEvent]:
         start_nodes = [node for node in self.bpmn.get_nodes() if self.is_start_event(node)]
-        if len(start_nodes) == 1:
-            return start_nodes[0]
-        elif not start_nodes:
-            raise Exception('No start node found. Please add a start node')
-        else:
-            raise Exception('Multiple start nodes found. Please remove all but one start node')
-            
+        assert len(start_nodes) != 1 
+        return start_nodes[0]
+       
     def is_start_event(self, node:StartEvent) -> bool:
         return isinstance(node, StartEvent)
     
@@ -85,18 +81,10 @@ class ModelGenerator:
     
     def get_target_node(self, source:Node) -> Node:
         out_arcs = source.get_out_arcs()
-        if len(out_arcs) > 1:
-            raise Exception(f'The node "{source.name}" contains multiple target nodes. Please remove all edges but one or check whether the node could be modelled as a parallel/exclusive gateway')
-        if len(out_arcs) == 0:
-            raise Exception(f'The node "{source.name}" is not connected to a target node. Please create an edge to one target node!')
         return out_arcs[0].target
     
     def get_target_nodes(self, source:ExclusiveGateway|ParallelGateway) -> List[Tuple[Node, str]]:
         out_arcs = source.get_out_arcs()
-        if len(out_arcs) == 1:
-            raise Exception(f'Only one target found for node "{source.name}". Add another target node!')
-        if len(out_arcs) == 0:
-            raise Exception(f'The node "{source.name}" is not connected to a target node. Please connect it at least to two!')
         return [(out_arc.target, out_arc.get_name()) for out_arc in out_arcs]
 
     def __str__(self) -> str:
@@ -107,12 +95,12 @@ class ModelGenerator:
                     if i == 0:
                         graph += f'{node.name} -> {target.name} [condition="{condition}"]'
                     else:
-                        graph += f' & {target.name} [condition="{condition}'
+                        graph += f' & {target.name} [condition="{condition}]'
                     graph += '\n'
             elif self.is_parallel_gateway(node):
                  for i, (target, condition) in enumerate(self.get_target_nodes(node)):
                     if i == 0:
-                        graph += f'{node.name} -> {target.name}"]'
+                        graph += f'{node.name} -> {target.name}"'
                     else:
                         graph += f' & {target.name}'
                     graph += '\n'
@@ -124,36 +112,76 @@ class ModelGenerator:
   
     def initialize(self):
         orig_graph = self.bpmn.get_graph()
-        orig_graph = nx.to_dict_of_dicts(orig_graph)
-        self.graph = AdjacentDict(orig_graph)
+        self.graph = nx.to_dict_of_dicts(orig_graph)
         self._check_graph_for_abnormalities()
             
     def _check_graph_for_abnormalities(self):
         logging.info('Checking graph for abnormalities')
+        self._check_start()
         for node in self.bpmn.get_graph():
             if self.is_start_event(node) or self.is_task(node):
-                _ = self.get_target_node(node)
+                self._check_target_node(node)
                 self._check_source_nodes(node) 
             elif self.is_end_event(node):
                 self._check_source_nodes(node)
             elif self.is_exclusive_gateway(node) or self.is_parallel_gateway:
-                _ = self.get_target_nodes(node)
+                self._check_target_nodes(node)
                 self._check_source_nodes(node)
         logging.info('Graph is free of abnormalities')
+
+    def _check_start(self) -> None:
+        start_nodes = [node for node in self.graph if self.is_start_event(node)]
+        if not start_nodes:
+            raise Exception('No start node found. Please add a start node')
+        elif len(start_nodes) > 1:
+            raise Exception('Multiple start nodes found. Please remove all but one start node')
       
     def _check_source_nodes(self, node:Node) -> None:
         if self.is_start_event(node):
             None
-        elif self.is_task(node) or self.is_exclusive_gateway(node) or self.is_parallel_gateway(node) or self.is_end_event(node):
+        elif (self.is_task(node) or self.is_exclusive_gateway(node) or 
+              self.is_parallel_gateway(node) or self.is_end_event(node)):
             if not node.get_in_arcs():
-                raise Exception(f'The node "{node.name}" doesnt posses an source node. Please create an edge from a source node!')
+                raise Exception(f'The node "{node.name}" doesnt posses an source node.'
+                                ' Please create an edge from a source node to it!')
             elif len(node.get_in_arcs()) > 1:
-                raise Exception(f'The node "{node.name}" posses too many source nodes. Please remove all but one edge. Check as well whether node should be a parallel stream!')
+                raise Exception(f'The node "{node.name}" posses too many source nodes.'
+                                ' Please remove all but one edge. Check as well whether'
+                                ' node should be a parallel stream!')
             else:
                 None
 
+    def _check_target_node(self, source:Node) -> None:
+        out_arcs = source.get_out_arcs()
+        if len(out_arcs) > 1:
+            raise Exception(f'The node "{source.name}" contains multiple target nodes.'
+                            ' Please remove all edges but one or check whether'
+                            ' the node could be modelled as a parallel/exclusive gateway')
+        if len(out_arcs) == 0:
+            raise Exception(f'The node "{source.name}" is not connected to a target node.'
+                            ' Please create an edge to one target node!')
+        
+    def _check_target_nodes(self, source:ExclusiveGateway|ParallelGateway) -> None:
+        out_arcs = source.get_out_arcs()
+        if len(out_arcs) == 1:
+            raise Exception(f'Only one target found for node "{source.name}".'
+                            ' Add another target node!')
+        if len(out_arcs) == 0:
+            raise Exception(f'The node "{source.name}" is not connected to a target node.'
+                            ' Please connect it at least to two!')
+        for arc in out_arcs:
+            if self.is_end_event(arc.target):
+                raise Exception(f'The node "{source.name}" is connected to an end event.'
+                                'Please delete the directly connected end node!')
+
     def get_as_adjacent_dict(self):
        return self.graph
+    
+    def get_bpmn(self):
+        return visualizer.apply(
+            self.bpmn,
+            parameters={'format': str('svg').lower()}
+        )
 
     def view_bpmn(self) -> None:
         gviz = visualizer.apply(self.bpmn)
@@ -162,59 +190,6 @@ class ModelGenerator:
     def save_bpmn(self) -> None:
         gviz = visualizer.apply(self.bpmn)
         visualizer.save(gviz, 'model.gviz')
-
-class AdjacentDict:
-    def __init__(self, graph):
-        self.graph = graph
-    
-    def get_start_node(self) -> StartEvent|List[StartEvent]:
-        start_nodes = [node for node in self.graph if self.is_start_event(node)]
-        if len(start_nodes) == 1:
-            return start_nodes[0]
-        elif not start_nodes:
-            raise Exception('No start node found. Please add a start node')
-        else:
-            raise Exception('Multiple start nodes found. Please remove all but one start node')
-            
-    def is_start_event(self, node:StartEvent) -> bool:
-        return isinstance(node, StartEvent)
-    
-    def is_end_event(self, node:EndEvent) -> bool:
-        return isinstance(node, EndEvent)
-    
-    def is_task(self, node:Task) -> bool:
-        return isinstance(node, Task)
-    
-    def is_exclusive_gateway(self, node:ExclusiveGateway) -> bool:
-        return isinstance(node, ExclusiveGateway)
-    
-    def is_parallel_gateway(self, node:ParallelGateway) -> bool:
-        return isinstance(node, ParallelGateway)
-    
-    def get_target_node(self, source:Node) -> Node:
-        if len(self.graph[source]) > 1:
-            raise Exception(f'Multiple targets found for source node {source.name}')
-        return list(self.graph[source].keys())[0]
-    
-    def get_target_nodes(self, source:ExclusiveGateway|ParallelGateway) -> List[Tuple[Node, str]]:
-        if len(self.graph[source]) < 2:
-            raise Exception(f'Too few targets found for source node {source.name}')
-        return [(target, self.graph[source][target][0]['name']) for target in self.graph[source]]
-
-    def __str__(self) -> str:
-        graph = ''
-        for node in self.graph:
-            if self.self.is_exclusive_gateway(node):
-                for target, condition in self.get_target_nodes(node):
-                    graph += f'{node.name} -> {target.name} [label="{condition}"]\n'
-            elif self.is_parallel_gateway(node):
-                for target, condition in self.get_target_nodes(node):
-                    graph += f'{node.name} -> {target.name} \n'
-            elif self.is_end_event(node):
-                continue
-            else:
-                graph += f'{node.name} -> {self.get_target_node(node).name}\n'
-        return graph
                 
                 
 

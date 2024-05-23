@@ -73,11 +73,15 @@ class ParameterAssignator:
                        'content': prompts_arguments.get_sys_message(self.list_parsed_functions)}
         prompt = {'role': 'user', 
                   'content': prompts_arguments.get_prompt(function_name, workflow, str(output))}
-
         message = [sys_message, prompt]
         response = self.connection.request(message)
 
-        if re.search('\bAssignation error\b', response, re.IGNORECASE):
-             raise Exception('Assignation error - No parameters can be assigned to the function')
+        DICT_PATTERN = r'{(.*?)}'
+        ERROR_PATTERN = r'Assignation error'
+        if re.search(ERROR_PATTERN, response, re.IGNORECASE):
+            raise Exception('Assignation error - No parameters can be assigned to the function')
+        elif re.search(DICT_PATTERN, response, re.DOTALL):
+            match = re.search(DICT_PATTERN, response, re.DOTALL)
+            return match.group()
         else:
             return response

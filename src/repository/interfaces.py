@@ -6,9 +6,17 @@ import mwparserfromhell
 import re
 import finnhub
 import io
+import pickle
+import tempfile
+import mimetypes
+import shutil
 
 from dotenv import load_dotenv
 from email.message import EmailMessage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -21,6 +29,30 @@ from gtts import gTTS
 
 load_dotenv('.env')
 
+############ START GENERAL FUNCTIONS ############
+def _store_tempfile(data: object) -> dict:
+    """stores a temporary file with the data
+
+    :param data: data to store in the temporary file
+    :return: path to the temporary file
+    """
+    with tempfile.NamedTemporaryFile(delete=False) as temp:
+        pickle.dump(data, temp)
+        return {'path_name': temp.name}
+    
+
+def _load_tempfile(path: str) -> object:
+    """loads a temporary file with the data
+
+    :param path: path to the temporary file
+    :return: data stored in the temporary file
+    """
+    with open(path, 'rb') as temp:
+        data = pickle.load(temp)
+        return data
+############ END GENERAL FUNCTIONS ############
+
+############ START API FUNCTIONS ############
 def d_get_current_weather(city: str):
     """provides current weather data for a given city
 
@@ -222,15 +254,15 @@ def d_get_basic_financials(name:str, type:TYPE='all_metric') -> dict:
     else:
         return response
 
-def d_create_image_from_text(description:str) -> Image:
+def d_create_image_from_text(description:str) -> str:
     """creates any desired image from a text description
 
     :param description: the description/prompt of the image to create
-    :return: the image created
+    :return: path to the temporary file
     """
     client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
     response = client.images.generate(
-        model="dall-e-3",
+        model="dall-e-2",
         prompt=description,
         n=1,
         size="1024x1024"
@@ -240,35 +272,43 @@ def d_create_image_from_text(description:str) -> Image:
     image_data = requests.get(image_url)
     image = Image.open(io.BytesIO(image_data.content))
 
-def d_store_image_to_disk(image:Image, filename:str="output") -> None:
+    with tempfile.NamedTemporaryFile(delete=False, prefix='picture_', suffix='.jpg') as temp:
+        image.save(temp)
+        path_name = temp.name
+        return {'path_name': path_name}
+
+def d_store_image_to_disk(path_name:str, filename:str="output") -> None:
     """stores the image to disk
 
-    :param image: the image to store
+    :param path_name: path to the temporary file
     :param filename: filename of the image to store, defaults to "output"
     """
-    image.save(f"{filename}.jpg")
+    shutil.copy(path_name, f'output/{filename}.jpg')
 
-def d_transform_text_to_speech(text: str, lang: str='en') -> gTTS:
+def d_transform_text_to_speech(text: str, lang: str='en') -> str:
     """transforms amy desired text to speech
 
     :param text: text to convert to speech
     :param lang: language of the text, defaults to 'en'
-    :return: speech reproduction of the text
+    :return: path to the temporary file
     """
     tts = gTTS(text=text, lang=lang)
-    return tts
+    with tempfile.NamedTemporaryFile(delete=False, prefix='voice_', suffix='.mp3') as temp:
+        tts.write_to_fp(temp)
+        path_name = temp.name
+        return {'path_name': path_name}
 
-def d_store_speech_to_disk(tts: gTTS, filename='output') -> None:
+def d_store_speech_to_disk(path_name:str, filename:str='output') -> None:
     """stores the speech to disk
 
-    :param tts: speech to store
+    :param path_name: path to the temporary file
     :param filename: name of the file to store the speech, defaults to 'output'
     """
-    tts.save(f'{filename}.mp3')
-    
+    shutil.copy(path_name, f'output/{filename}.mp3')
+
+############ END API FUNCTIONS ############
 
 ############ START GOOGLE APIS ############
-
 def _get_google_oauth_credentials() -> Credentials:
     CLIENT_FILE = 'config/account_01.json'
     SCOPES = ['https://mail.google.com/',
@@ -292,22 +332,42 @@ def _get_google_oauth_credentials() -> Credentials:
 
     return credentials
 
-def d_send_email_to(recipient: str, content: str, subject: str):
+def d_send_email_to(recipient: str, content: str, subject: str, file:str=None):
     """sends an email to a given recipient
 
     :param recipient: email address of the recipient
     :param content: content of the email to be sent
     :param subject: subject of the email to be sent
+    :param path_name: path to the temporary file to be attached (image, pdf, etc.)
     """
     credentials = _get_google_oauth_credentials()
 
     service = build('gmail', 'v1', credentials=credentials)
 
-    message = EmailMessage()
-    message.set_content(content)
+    message = MIMEMultipart()
     message['To'] = recipient
     message['From'] = 'nick.reiter6.11.98@gmail.com'
     message['Subject'] = subject
+
+    msg = MIMEText(content)
+    message.attach(msg)
+
+    content_type, encoding = mimetypes.guess_type(file)
+    if content_type is None or encoding is not None:
+        content_type = 'application/octet-stream'
+    main_type, sub_type = content_type.split('/', 1)
+    if main_type == 'text':
+        fp = open(file, 'r')
+        msg = MIMEText(fp.read(), _subtype=sub_type)
+        fp.close()
+    else:
+        fp = open(file, 'rb')
+        msg = MIMEBase(main_type, sub_type)
+        msg.set_payload(fp.read())
+        fp.close()
+        encoders.encode_base64(msg)    
+    msg.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file))
+    message.attach(msg)
 
     raw_string = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
@@ -382,7 +442,7 @@ def d_create_new_google_sheet(title:str) -> str:
     spreadsheet = service.spreadsheets().create(body=spreadsheet,
                                                 fields='spreadsheetId').execute()
     return f"'spreadsheet_id': '{spreadsheet.get('spreadsheetId')}'"
-
+############## END GOOGLE APIS ############
 
 
 

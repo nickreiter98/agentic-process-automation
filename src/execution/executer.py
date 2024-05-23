@@ -33,6 +33,7 @@ class Executor():
         self.list_functions = self._get_functions_from_repository()
         self.name_2_function = self._map_name_to_function(self.list_functions)
         self.workflow = workflow
+        self.logs = ''
         self.process_modell = process_modell 
         self.selector = FunctionSelector(functions=self.list_functions)
         self.assignator = ParameterAssignator(functions=self.list_functions)
@@ -72,15 +73,18 @@ class Executor():
             target_node = condition_2_node[target_condition]
 
         logging.info(f'Condition is selected: {target_condition}')
+        self.logs += f'Condition is selected: {target_condition}\n'
         return target_node
     
     def _execute_task(self, node:Task, output:str) -> Tuple[Node, str]:
         function_name = self.selector.select(node, self.workflow)
         arguments = self.assignator.assign(function_name, output, self.workflow)
         logging.info(f'{function_name} is selected with arguments: {arguments}')
+        self.logs += f'{function_name} is selected with arguments: {arguments}\n'
         arguments = json.loads(arguments)
         try:
             output = self.name_2_function[function_name](**arguments)
+            self.logs += f'Output of the function: {output}\n'
         except Exception as e:
             raise(f'Execution of interface function from the repository failed: {e}')
         
@@ -91,9 +95,11 @@ class Executor():
         while True:
             if self.process_modell.is_start_event(current_node):
                 logging.info('Process started')
+                self.logs += 'Process started\n'
                 current_node = self.process_modell.get_target_node(current_node)
             elif self.process_modell.is_task(current_node):
                 logging.info(f'Execution of task: {current_node.get_name()}')
+                self.logs += f'Execution of task: {current_node.get_name()}\n'
                 current_node, output = self._execute_task(current_node, output)
             elif self.process_modell.is_exclusive_gateway(current_node):
                 logging.info(f'Execution of parallel gateway: {current_node.get_name()}')
@@ -112,6 +118,7 @@ class Executor():
                 break
             elif self.process_modell.is_end_event(current_node):
                 logging.info('Process ended')
+                self.logs += 'Process ended\n'
                 break
 
     
@@ -121,9 +128,5 @@ class Executor():
 
         self._check_node_for_execution(current_node, output)
 
-        
-                
-                
-
-
-            
+    def get_log(self)->str:
+        return self.logs           

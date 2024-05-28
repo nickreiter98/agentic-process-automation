@@ -16,8 +16,8 @@ def add_role():
 def add_knowledge():
     return (" Use the following knowledge about the underlying BPMN process modeling language:\n" 
             " 1. Initialization:\n" 
-            " - Start Event: The process initiates with a Start Event, typically " 
-            " reprsented by a circle. This node marks the beginning of the process.  \n" 
+            " - Start Event: The process initiates with a Start Event, typically" 
+            " reprsented by a circle. This node marks the beginning of the process.\n" 
             " 2. Task Nodes:\n" 
             " - Task Definition: Following the start event, tasks are sequentially"
             " modeled as nodes. These nodes are depicted as rectangles with rounded corners."
@@ -26,16 +26,15 @@ def add_knowledge():
             " inventory, processing payments, or preparing shipments.\n"
             " 3. Gateway Nodes for Decision Points:\n"
             " - Inclusion of Gateways: Where the process requires decision-making or"
-            " branching, gateways are used. These are represented as diamond shapes.\n"
+            " branching, gateways are used. There exists diverging and converging gateways."
+            " For this modelling task, only diverging gateways are allowed. These mark the beginning"
+            " of a branching\n"
             " - Types of Gateways:\n"
             "   - Exclusive Gateways: Used for making decisions where only one path can"
             "     be taken out of many based on conditions.\n"
             "   - Parallel Gateways: Allow multiple paths to proceed simultaneously.\n"
-            " - Sequential Branch Handling: In the case of branches introduced by exclusive \n"
-            " or parallel gateways, the process model will follow one branch to its conclusion."
-            " Especially, for parallel branches, keep in mind that the parallel branches must be duplicated"
-            " if they converge to the same node since the model cannot create converging parallel gateways."
-            " Thus, parallel gateways which possess the same edges/activities must be duplicated.\n"
+            " - Gatway Handling: In the case of branches introduced by exclusive \n"
+            " or parallel gateways, the process model will follow one branch to its end."
             " 4. Modeling Sequence with Edges:\n"
             " - Connecting Nodes: Once all nodes (events, tasks, gateways) are placed, edges"
             " are drawn to connect these nodes, indicating the flow from one activity to the"
@@ -61,29 +60,30 @@ def add_knowledge():
             " events properly conclude all process threads. \n\n")
 
 def add_least_to_most():
-    return ("Provide the Python code that sequentially models the process as a BPMN model using the "
+    return ("Provide the Python code that sequentially models the process as a BPMN model using the"
             " class Model Generator, which is derived from PM4PY's pm4py.objects.bpmn.obj classes."
-            " In the end intialize the model with the function initialize() to check as well the model for abnormalities. First,"\
-            " model the nodes (Gateway, Task, Start, End) and then the edges between the nodes. Do not "
+            " In the end intialize the model with the function initialize() to check as well the model for abnormalities. First,"
+            " model the nodes (Gateway, Task, Start, End) and then the edges between the nodes. Do not"
             " execute the code; just provide the plain code for external execution.\n"
             f" Assume the class ModelGenerator is imported using the following statement: {IMPORT_STATEMENT}"
             " The ModelGenerator class offers these functions:\n"
-            " - create_start_event() creates the start node object named 'Start'. It takes 0 string "
+            " - create_start_event() creates the start node object named 'Start'. It takes 0 string"
             " arguments and only one start event is possible.\n"
             " - create_end_event() creates the end node object name 'End'. It takes 0 string arguments.\n"
-            " - create_task(name) generates a task node object with its label name. It takes 1 string "
+            " - create_task(name) generates a task node object with its label name. It takes 1 string"
             " argument for the activity label.\n"
-            " - create_exclusive_gateway(name) generates an exclusive diverging gateway object named after the "
-            " condition's title. It takes 1 string argument. Conditions and predecessors are set later with "
+            " - create_exclusive_gateway(name) generates an exclusive diverging gateway object named after the"
+            " condition's title. It takes 1 string argument. Conditions and predecessors are set later with"
             " create_exclusive_edge.\n"
-            " - create_parallel_gateway(index) generates a parallel diverging gateway object for branching to multiple "
-            " targets. It takes 1 arguments, which provides an index.\n"
-            " - create_edge(source, target) adds an edge between two nodes. It requires 2 node arguments: "
+            " - create_parallel_gateway(index) generates a parallel diverging gateway object for branching to multiple"
+            " targets. It takes 1 arguments, which provides an index. It is not possible to create converging parallel gateways"
+            " with this funktion\n"
+            "- create_edge(source, target) adds an edge between two nodes. It requires 2 node arguments:"
             " source and target.\n"
-            " - create_exclusive_edge(source, target, condition) adds a conditional edge between an "
-            " exclusive gateway and a task node. It takes 3 arguments: source node, target node, and "
-            " condition. Include an opposite condition directing to the end event if there's only one "
-            " condition leading to a target. Ensure all events have a successor or target. Also, "
+            " - create_exclusive_edge(source, target, condition) adds a conditional edge between an"
+            " exclusive gateway and a task node. It takes 3 arguments: source node, target node, and"
+            " condition. Include an opposite condition directing to the end event if there's only one"
+            " condition leading to a target. Ensure all events have a successor or target. Also,"
             " note that only diverging gateways are used, no converging ones!\n\n")
 
 
@@ -122,8 +122,9 @@ def add_few_shots():
     return res
 
 def add_few_shots_with_errors():
-    res = ("Additional to the previous few-shots, there are few-shots extended " 
-        "with common errors that you should avoid.\n")
+    res = ("Additional to the previous few-shots, there are negative few-shots." 
+           " These negative few shots contain the description of the process,"
+           " the linked code and the error, why the model is not correct.\n")
     
     for i, shot in enumerate(SHOTS_WITH_ERRORS):
         description, model, error = shot
@@ -136,7 +137,7 @@ def add_few_shots_with_errors():
         res = res + f'Process description for EXAMPLE {i+1}:\n{description}\n'
         res = res + f'Process model for EXAMPLE {i+1}:\n'
         res = res + f'```python\n{IMPORT_STATEMENT}\n{content_as_string}\n```\n'
-        res = res + f'Common errors to avoid for EXAMPLE {i+1}:\n{error}'
+        res = res + f'Common errors to avoid for EXAMPLE {i+1}:\n{error}\n\n'
     return res
 
 

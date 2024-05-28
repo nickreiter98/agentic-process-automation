@@ -91,8 +91,33 @@ def m3():
 
     model.initialize()
 
-de1 = ("The user has to register for the app. After registering the user can"
-    " access the app and add a product to the cart.")
+d4 = ("The process is started with A. After A, B and C are executed. After both of them D is following")
+
+def m4():
+    model = ModelGenerator()
+
+    start = model.create_start_event()
+    a = model.create_task('A')
+    parallel_gateway_1 = model.create_parallel_gateway('1')
+    b = model.create_task('B')
+    c = model.create_task('C')
+    d1 = model.create_task('D')
+    d2 = model.create_task('D')
+    end_1 = model.create_end_event()
+    end_2 = model.create_end_event()
+
+    model.create_edge(start, a)
+    model.create_edge(a, parallel_gateway_1)
+    model.create_edge(parallel_gateway_1, b)
+    model.create_edge(parallel_gateway_1, c)
+    model.create_edge(b, d1)
+    model.create_edge(c, d2)
+    model.create_edge(d1, end_1)
+    model.create_edge(d2, end_2)
+
+    model.initialize()
+
+de1 = "First, register for the app. Then access the app. After that, add a product to the cart."
 
 def me1():
     model = ModelGenerator()
@@ -167,5 +192,39 @@ ee3 = ("In this process, the parallel branches are not modelled correctly."
        " Since no converging of parallel streams is possible, E must be"
        " duplicated into two edges and connected to C and D separately.")
 
-SHOTS = [(d1, m1), (d2, m2), (d3, m3)]
-SHOTS_WITH_ERRORS = [(de1, me1, ee1), (de2, me2, ee2)]
+de4 = ("Firstly, A is triggered. A is followed by B."
+       "  To end the process, C and D are triggered")
+
+def me4():
+    model = ModelGenerator()
+
+    start = model.create_start_event()
+    a = model.create_task('A')
+    b = model.create_task('B')
+    parallel_gateway_1 = model.create_parallel_gateway('1')
+    c = model.create_task('C')
+    parallel_gateway_1a = model.create_parallel_gateway('1a')
+    d = model.create_task('D')
+    parallel_gateway_1b = model.create_parallel_gateway('1b')
+    end_1 = model.create_end_event()
+    end_2 = model.create_end_event()
+
+    model.create_edge(start, a)
+    model.create_edge(a, b)
+    model.create_edge(b, parallel_gateway_1)
+    model.create_edge(parallel_gateway_1, c)
+    model.create_edge(parallel_gateway_1, d)
+    model.create_edge(c, parallel_gateway_1a)
+    model.create_edge(d, parallel_gateway_1b)
+    model.create_edge(parallel_gateway_1a, end_1)
+    model.create_edge(parallel_gateway_1b, end_2)
+
+    model.initialize()
+
+ee4 = ("In this process, the parallle gatways '1a' and '1b' are not used correctly."
+       " Normally, parallel gateways are used for diverging a process stream."
+       " In this case, the parallel gateways are unnecessary and can be removed."
+       " Als an end event must follow a task and not a parallel or exclusive gateway.")
+
+SHOTS = [(d1, m1), (d2, m2), (d3, m3), (d4, m4)]
+SHOTS_WITH_ERRORS = [(de1, me1, ee1), (de2, me2, ee2), (de3, me3, ee3), (de4, me4, ee4)]

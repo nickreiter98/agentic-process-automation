@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testlauf {{ current_time }} - {{ name }}</title>
+</head>
+<body>
+
+    <h1>Test Run {{ current_time }}</h1>
+    <h2><b>ID:</b> {{ name }}</h2>
+    <p><b>Textual Process Description:</b> {{ workflow }}</p>
+
+    <h3>Process Representation in BPMN and Text</h3>
+    <img src="{{ process_image }}" alt="The process representatin of the workflow">
+    <p>{{ process_text }}</p>
+
+    <h3>Execution of the Process in Text</h3>
+    <p>{{ execution_text }}</p>
+
+</body>
+</html>

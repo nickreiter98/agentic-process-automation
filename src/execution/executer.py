@@ -14,6 +14,8 @@ from src.execution.prompts_exclusive_gateway import get_sys_message, get_prompt
 from src.modelling.generator import ModelGenerator
 from src.utils.open_ai import OpenAIConnection
 
+from src.utils.output_redirection import _print
+
 # Define type hints
 from typing import List, Dict, Tuple, TypeAlias, Callable
 StartEvent: TypeAlias = BPMN.StartEvent
@@ -30,22 +32,14 @@ class Executor():
         workflow: str,
         process_modell: ModelGenerator,
     ):
-        self.list_functions = self._get_functions_from_repository()
-        self.name_2_function = self._map_name_to_function(self.list_functions)
+        self.repository = Repository()
         self.workflow = workflow
         self.logs = ''
+        self.output_storage = []
         self.process_modell = process_modell 
-        self.selector = FunctionSelector(functions=self.list_functions)
-        self.assignator = ParameterAssignator(functions=self.list_functions)
+        self.selector = FunctionSelector(repository=self.repository)
+        self.assignator = ParameterAssignator(repository=self.repository)
         self.connection = OpenAIConnection()
-        
-    def _get_functions_from_repository(self) -> List[Callable]:
-        return Repository().functions
-    
-    def _map_name_to_function(self, functions:List[Callable]) -> Dict[str,Callable]:
-        if functions is None:
-            return {}
-        return {func.__name__: func for func in functions}
 
     def _execute_exlusive_gateway(self, node:ExclusiveGateway, output:str) -> Node:
         node_2_condition = {n[0]: n[1] for n in self.process_modell.get_target_nodes(node)}
@@ -57,76 +51,89 @@ class Executor():
         message = [sys_message, prompt]
         response = self.connection.request(message)
 
-        try:
-            response = json.loads(response)
-        except Exception:
-            raise Exception('Selection of condition failed - Please try again')
-        
-        if len(response) > 1:
-            raise Exception('Multiple conditions selected - Only one condition can be selected')
-        else:
-            target_condition = str(list(response.values())[0])
-        
-        if re.findall('\bNO CONDITION FOUND\b', target_condition, re.IGNORECASE):
-            raise Exception('No condition selected - No condition can be mapped to the activity')
-        else:
+        DICT_PATTERN = r'{(.*?)}'
+        ERROR_PATTERN = r'Condition error'
+        if re.search(ERROR_PATTERN, response, re.IGNORECASE):
+            raise Exception(f'Condition error - No condition can be chosen for "{node.name}"')
+        elif re.search(DICT_PATTERN, response, re.DOTALL):
+            match = re.search(DICT_PATTERN, response, re.DOTALL).group()
+            target_condition = json.loads(match)
+            assert len(target_condition) == 1, ("Multiple conditions selected -"
+                                                " Only one condition can be selected") 
+            target_condition = str(list(target_condition.values())[0])
             target_node = condition_2_node[target_condition]
+            logging.info(f'Condition is selected: {target_condition}')
+            self.logs += f'Condition is selected: {target_condition}\n'
+            _print(f'Condition is selected: {target_condition}')
 
-        logging.info(f'Condition is selected: {target_condition}')
-        self.logs += f'Condition is selected: {target_condition}\n'
-        return target_node
+            return target_node
+        else:
+            raise Exception("Neither an condition error nor the function could be mapped"
+                            " Please try again!")
     
     def _execute_task(self, node:Task, output:str) -> Tuple[Node, str]:
         function_name = self.selector.select(node, self.workflow)
-        arguments = self.assignator.assign(function_name, output, self.workflow)
+        arguments = self.assignator.assign(function_name, self.workflow, self.output_storage )
         logging.info(f'{function_name} is selected with arguments: {arguments}')
         self.logs += f'{function_name} is selected with arguments: {arguments}\n'
-        arguments = json.loads(arguments)
+        _print(f'{function_name} is selected with arguments: {arguments}')
+
         try:
-            output = self.name_2_function[function_name](**arguments)
-            self.logs += f'Output of the function: {output}\n'
+            output = self.repository.get_function_by_name(function_name)(**arguments)
         except Exception as e:
-            raise(f'Execution of interface function from the repository failed: {e}')
+            raise(f'Execution of the function failed with the error: {e}')
         
+        self.output_storage.append({function_name: output})
+        self.logs += f'Output of the function: {output}\n'
+        _print(f'Output of the function: {output}')
         target_node = self.process_modell.get_target_node(node)
         return (target_node, output)
     
-    def _check_node_for_execution(self, current_node:Node, output:str) -> None:
+    def _run_execution(self, current_node:Node, output:str) -> None:
         while True:
             if self.process_modell.is_start_event(current_node):
                 logging.info('Process started')
                 self.logs += 'Process started\n'
+                _print('Process started')
                 current_node = self.process_modell.get_target_node(current_node)
             elif self.process_modell.is_task(current_node):
                 logging.info(f'Execution of task: {current_node.get_name()}')
                 self.logs += f'Execution of task: {current_node.get_name()}\n'
+                _print(f'Execution of task: {current_node.get_name()}')
                 current_node, output = self._execute_task(current_node, output)
             elif self.process_modell.is_exclusive_gateway(current_node):
                 logging.info(f'Execution of parallel gateway: {current_node.get_name()}')
+                self.logs += f'Execution of parallel gateway: {current_node.get_name()}\n'
+                _print(f'Execution of parallel gateway: {current_node.get_name()}')
                 current_node = self._execute_exlusive_gateway(current_node, output)
             elif self.process_modell.is_parallel_gateway(current_node):
                 target_nodes = [n[0] for n in self.process_modell.get_target_nodes(current_node)]
                 processes = []
                 logging.info('Parallelity started')
+                self.logs += 'Parallelity started\n'
+                _print('Parallelity started')
                 for node in target_nodes:
-                    processes.append(multiprocessing.Process(target=self._check_node_for_execution, args=(node, output)))
-                for process in processes:
-                    process.start()
-                for process in processes:
-                    process.join()
+                    self._run_execution(node, output)
+                # for node in target_nodes:
+                #     processes.append(multiprocessing.Process(target=self._run_execution, args=(node, output)))
+                # for process in processes:
+                #     process.start()
+                # for process in processes:
+                #     process.join()
                 logging.info('Parallelity ended')
+                self.logs += 'Parallelity ended\n'
+                _print('Parallelity ended')
                 break
             elif self.process_modell.is_end_event(current_node):
                 logging.info('Process ended')
                 self.logs += 'Process ended\n'
+                _print('Process ended')
                 break
 
-    
     def run(self) -> None:        
         current_node = self.process_modell.get_start_node()
         output = ''
-
-        self._check_node_for_execution(current_node, output)
+        self._run_execution(current_node, output)
 
     def get_log(self)->str:
         return self.logs           

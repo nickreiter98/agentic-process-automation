@@ -333,7 +333,7 @@ def _get_google_oauth_credentials() -> Credentials:
     return credentials
 
 def d_send_email_to(recipient: str, content: str, subject: str, file:str=None):
-    """sends an email to a given recipient
+    """sends an email to a given recipient. Optionally, a file can be attached to the email.
 
     :param recipient: email address of the recipient
     :param content: content of the email to be sent
@@ -352,22 +352,23 @@ def d_send_email_to(recipient: str, content: str, subject: str, file:str=None):
     msg = MIMEText(content)
     message.attach(msg)
 
-    content_type, encoding = mimetypes.guess_type(file)
-    if content_type is None or encoding is not None:
-        content_type = 'application/octet-stream'
-    main_type, sub_type = content_type.split('/', 1)
-    if main_type == 'text':
-        fp = open(file, 'r')
-        msg = MIMEText(fp.read(), _subtype=sub_type)
-        fp.close()
-    else:
-        fp = open(file, 'rb')
-        msg = MIMEBase(main_type, sub_type)
-        msg.set_payload(fp.read())
-        fp.close()
-        encoders.encode_base64(msg)    
-    msg.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file))
-    message.attach(msg)
+    if file is not None:
+        content_type, encoding = mimetypes.guess_type(file)
+        if content_type is None or encoding is not None:
+            content_type = 'application/octet-stream'
+        main_type, sub_type = content_type.split('/', 1)
+        if main_type == 'text':
+            fp = open(file, 'r')
+            msg = MIMEText(fp.read(), _subtype=sub_type)
+            fp.close()
+        else:
+            fp = open(file, 'rb')
+            msg = MIMEBase(main_type, sub_type)
+            msg.set_payload(fp.read())
+            fp.close()
+            encoders.encode_base64(msg)    
+        msg.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file))
+        message.attach(msg)
 
     raw_string = base64.urlsafe_b64encode(message.as_bytes()).decode()
 

@@ -1,10 +1,9 @@
 import os
-import tempfile
 import sys
 import pandas as pd
 from xhtml2pdf import pisa 
 from jinja2 import Environment, FileSystemLoader
-from datetime import date, datetime
+from datetime import datetime
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
@@ -43,21 +42,15 @@ if __name__ == '__main__':
    folder_path = f'test/{current_time}'
 
    workflows = pd.read_csv('test/workflow_descriptions.csv', index_col=0)
+
    for index, row in workflows.iterrows():
       content = row['content']
       process_text = ''
       process_image = ''
       execution_text = ''
-      
-      _print('++++++++++++++++++++')
-      _print(f'NEW WORKFLOW WITH DATE: {date.today()}')
-      _print('MODEL: gpt-4o')
-      _print(f'{content}')
-
       try:
          process = generate_model(content, 10)
          process_text = process.__str__()
-         _print(process_text)
          process_gviz = process.get_bpmn()
          process_image = f'{folder_path}/{index}'
          process_gviz.render(process_image, format='png')
@@ -65,7 +58,6 @@ if __name__ == '__main__':
             executer = Executor(content, process)
             executer.run()
             execution_text = executer.logs
-            _print(execution_text)
             render_pdf(current_time, index, content, process_text, process_image, execution_text, folder_path)
          except Exception as e:
             error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
@@ -73,5 +65,3 @@ if __name__ == '__main__':
       except Exception as e:
          error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
          render_pdf(current_time, index, content, error, process_image, execution_text, folder_path)
-               
-   _print('++++++++++++++++++++')

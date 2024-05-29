@@ -14,7 +14,7 @@ def add_least_to_most():
 def add_output_pattern():
     return  (" Use the provided template below to return the output:\n" 
             " ```json\n{\"name\": \"condition\"}\n```" 
-            " - condition: place holder for the name of the condition which is true\n" 
+            " - condition: place holder for the name of the condition which is chosen.\n" 
             " If you were unsuccessfull chosing a function, return the output:\n" 
             " 'Condition error' \n\n")
             
@@ -25,10 +25,10 @@ def get_sys_message():
     return sys_message
 
 def get_prompt(context:str, conditions:list[str], output:str):
-    prompt = "Chose the one one of the following conditions:\n"
+    prompt = "Chose one of the following conditions:\n"
 
     for i, condition in  enumerate(conditions):
-        prompt += f"- Condition {i+1}: {condition}\n"
+        prompt += f"```{condition}```\n"
 
     prompt += ("based on the given data and context. \n"
                f"- Data: {output} \n" 

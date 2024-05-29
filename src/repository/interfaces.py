@@ -147,7 +147,8 @@ def d_get_bank_account_statement(user_id:int) -> dict:
         'properties':{
             'name': 'Max Muster',
             'iban': 'DE123456789054672',
-            'bic': 'GENODEF1M03',},
+            'bic': 'GENODEF1M03',
+            'email': 'nick.reiter@hotmail.de'},
         'balance': balance,
         'account_type': account_type
     }
@@ -158,19 +159,30 @@ def d_get_wikipedia_page(page:str) -> str:
     :param page: name of the wikipedia page
     :return: content of the wikipedia page
     """
-    response = requests.get(
-        'https://en.wikipedia.org/w/api.php',
-        params={
-            'action': 'query',
-            'format': 'json',
-            'titles': page,
-            'prop': 'revisions',
-            'rvprop': 'content'
-        }).json()
-    page = next(iter(response['query']['pages'].values()))
-    wikicode = page['revisions'][0]['*']
-    parsed_wikicode = mwparserfromhell.parse(wikicode)
-    return parsed_wikicode.strip_code()
+    def _request(page):
+        response = requests.get(
+            'https://en.wikipedia.org/w/api.php',
+            params={
+                'action': 'query',
+                'format': 'json',
+                'titles': page,
+                'prop': 'revisions',
+                'rvprop': 'content',
+                'redirects': ''
+            }).json()
+        return response
+    
+    try:
+        response = _request(page)
+        if response['query']['redirects'][0]['to'] :
+            page = response['query']['redirects'][0]['to']
+            response = _request(page)
+        page = next(iter(response['query']['pages'].values()))
+        wikicode = page['revisions'][0]['*']
+        parsed_wikicode = mwparserfromhell.parse(wikicode)
+        return parsed_wikicode.strip_code()
+    except Exception as e:
+        raise Exception(f"Error while getting the wikipedia page")
 
 def d_apply_natural_language_task(content: str, task: str) -> str:
     """
@@ -209,6 +221,7 @@ def d_upload_to_medium(content:str, title:str) -> dict:
     :param title: title of the blog post
     """
     exemplaric_response = {
+        "status": "Successfully uploaded blog post",
         "data": {
             "id": "e6e862f2e6e1",
             "title": "Hello, Medium!",
@@ -346,7 +359,7 @@ def d_send_email_to(recipient: str, content: str, subject: str, file:str=None):
 
     message = MIMEMultipart()
     message['To'] = recipient
-    message['From'] = 'nick.reiter6.11.98@gmail.com'
+    message['From'] = os.getenv('EMAIL_SENDER')
     message['Subject'] = subject
 
     msg = MIMEText(content)
@@ -380,6 +393,123 @@ def d_send_email_to(recipient: str, content: str, subject: str, file:str=None):
             .send(userId="me", body=create_message)
             .execute()
         )
+    
+    if 'id' in send_message:
+        return {"status": "Successfully sent email"}
+    else:
+        return {"status": "Failed to send email"}
+    
+def d_get_google_document(document_id:str) -> dict[str, str]:
+    """get the text content of a google document
+
+    :param document_id: document id of the google document
+    :return: text content of the document
+    """
+    credentials = _get_google_oauth_credentials()
+
+    service = build('docs', 'v1', credentials=credentials)
+    document = service.documents().get(documentId=document_id).execute()
+
+    content = document.get('body').get('content')
+
+    text = ''
+    for element in content:
+        if 'paragraph' in element:
+            for paragraph_element in element['paragraph']['elements']:
+                if 'textRun' in paragraph_element:
+                    text += paragraph_element['textRun']['content']
+
+    return {'text':text}
+
+def d_create_google_document(title:str) -> dict[str, str]:
+    """create a new google document
+
+    :param title: the title of the new document
+    :return: document id of the new document
+    """
+    credentials = _get_google_oauth_credentials()
+
+    service = build('docs', 'v1', credentials=credentials)
+    document = {
+        'title': title
+    }
+    document = service.documents().create(body=document).execute()
+    document_id = document.get('documentId')
+    return {'document_id':document_id}
+
+
+def d_update_google_document(text:str, document_id:str):
+    """update the text content of a google document.
+    The text will be appended to the end of the document.
+
+    :param text: text to be appended to the document
+    :param document_id: document id of the google document
+    """
+    credentials = _get_google_oauth_credentials()
+    service = build('docs', 'v1', credentials=credentials)
+
+    document = service.documents().get(documentId=document_id).execute()
+    content = document.get('body').get('content')
+    last_element = content[-1]
+    end_index = last_element.get('endIndex')
+
+    requests = [
+        {
+            'insertText': {
+                'location': {
+                    'index': end_index-1,
+                },
+                'text': text
+            }
+        }
+    ]
+    body = {'requests': requests}
+
+    document = service.documents().batchUpdate(documentId=document_id, body=body).execute()
+
+def d_get_latest_email() -> dict[str, str]:
+    """get the latest email from Google Mail
+
+    :return: a dictionary containing the email subject,
+    sender and text of the lates email
+    """
+    creds = _get_google_oauth_credentials()
+    service = build('gmail', 'v1', credentials=creds)
+    
+    results = service.users().messages().list(userId='me', maxResults=1, q='is:inbox').execute()
+    messages = results.get('messages', [])
+
+    if not messages:
+        print('No messages found.')
+        return None
+
+    latest_message_id = messages[0]['id']
+    message = service.users().messages().get(userId='me', id=latest_message_id).execute()
+
+    # Decode the email message
+    payload = message['payload']
+    headers = payload['headers']
+    parts = payload.get('parts', [])
+    data = ''
+    
+    if parts:
+        for part in parts:
+            if part['mimeType'] == 'text/plain':
+                data = part['body']['data']
+                break
+    else:
+        data = payload['body']['data']
+        
+    email_text = base64.urlsafe_b64decode(data).decode('utf-8')
+    
+    email_subject = next(header['value'] for header in headers if header['name'] == 'Subject')
+    email_from = next(header['value'] for header in headers if header['name'] == 'From')
+    
+    return {
+        'subject': email_subject,
+        'from': email_from,
+        'text': email_text
+    }
     
 def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Sheet1') -> dict:
     """
@@ -423,12 +553,11 @@ def d_append_values_to_google_sheet(spreadsheet_id:str, values:list[list[str]], 
         body=body
     ).execute()
 
-# TODO: add content for spreadsheet
-def d_create_new_google_sheet(title:str) -> str:
-    """_summary_
+def d_create_new_google_sheet(title:str) -> dict[str, str]:
+    """Create a new google sheet spreadsheet
 
-    :param title: _description_
-    :return: _description_
+    :param title: title of the new spreadsheet
+    :return: dictionary containing the spreadsheet ID
     """
     credentials = _get_google_oauth_credentials()
     
@@ -439,10 +568,51 @@ def d_create_new_google_sheet(title:str) -> str:
             'title': title
         }
     }
-
     spreadsheet = service.spreadsheets().create(body=spreadsheet,
                                                 fields='spreadsheetId').execute()
-    return f"'spreadsheet_id': '{spreadsheet.get('spreadsheetId')}'"
+    return {"spreadsheet_id": f"{spreadsheet.get('spreadsheetId')}"}
+
+from typing import List
+def d_append_values_to_google_sheet(spreadsheet_id:str, values:List[List[str]]):
+    """Append values to a google sheet
+    
+    :param spreadsheet_id: ID of the google sheet
+    :param values: List of values to be appended. Is represented as 2D list, where each inner list represents a row
+    """
+    credentials = _get_google_oauth_credentials()
+    
+    service = build("sheets", "v4", credentials=credentials)
+
+    body = {
+        'values': values
+    }
+
+    range_name:str='Tabellenblatt1'
+
+    service.spreadsheets().values().append(
+        spreadsheetId=spreadsheet_id,
+        range=range_name,
+        valueInputOption="USER_ENTERED",
+        insertDataOption="INSERT_ROWS",
+        body=body
+    ).execute()
+
+def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Tabellenblatt1') -> dict:
+    """
+    :param spreadsheet_id: _description_
+    :param range_noation: range of values to be retrieved in A1 notation
+    :return: _description_
+    """
+    credentials = _get_google_oauth_credentials()
+
+    service = build("sheets", "v4", credentials=credentials)
+
+    request = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheet_id,
+        range=range_notation)
+    values = request.execute()
+
+    return values
 ############## END GOOGLE APIS ############
 
 

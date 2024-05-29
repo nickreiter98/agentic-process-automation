@@ -18,14 +18,11 @@ To feed the upper agents with information, the programm contains a repository:\
 
 **API Keys:** To execute the software, API keys are required. The required API keys you can add to the `.env` file. Please keep all keys. Required is the OpenAI Key, you cann get from the company's webside
 
-**Google APIs:** So far, to test the software, Google APIs are excessively used. To activate this please follow this tutorial and activate and get the OAuth 2.0-Client-ID for the following APIs: *Google Mail, Google Sheets, Google Docs and Google Calendar*. Please store the client key `config/account_01.json`
+**Google APIs:** So far, to test the software, Google APIs are excessively used. To activate this please follow this [tutorial](https://developers.google.com/identity/protocols/oauth2) and activate and get the OAuth 2.0-Client-ID for the following APIs: *Google Mail, Google Sheets, Google Docs and Google Calendar*. Please store the client key `config/account_01.json`
 
 ## 🚀 Execution
-<<<<<<< HEAD
 First at all activate your environment: `source .venv/bin/activate`
 
-=======
->>>>>>> 4eaef462bd0a7d1393eb46b8aae442ca19e1f5e8
 There are three different ways, you can execute the software:
 
 **Streamlit:** To execute the software with a nice GUI, you have to run the programm with `streamlit run app_st.py` in your shell

@@ -2,7 +2,6 @@ import os
 import json
 import re
 
-from src.misc import decoder
 from src.utils.open_ai import OpenAIConnection
 from src.execution import prompts_selection, prompts_arguments
 from src.repository.repository import Repository

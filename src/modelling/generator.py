@@ -61,7 +61,7 @@ class ModelGenerator:
 
     def get_start_node(self) -> StartEvent|List[StartEvent]:
         start_nodes = [node for node in self.bpmn.get_nodes() if self.is_start_event(node)]
-        assert len(start_nodes) != 1 
+        assert len(start_nodes) == 1 
         return start_nodes[0]
        
     def is_start_event(self, node:StartEvent) -> bool:
@@ -166,13 +166,15 @@ class ModelGenerator:
         if len(out_arcs) == 1:
             raise Exception(f'Only one target found for node "{source.name}".'
                             ' Add another target node!')
-        if len(out_arcs) == 0:
+        elif len(out_arcs) == 0:
             raise Exception(f'The node "{source.name}" is not connected to a target node.'
                             ' Please connect it at least to two!')
-        for arc in out_arcs:
-            if self.is_end_event(arc.target):
-                raise Exception(f'The node "{source.name}" is connected to an end event.'
-                                'Please delete the directly connected end node!')
+        
+        if self.is_parallel_gateway(source):
+            for arc in out_arcs:
+                if self.is_end_event(arc.target):
+                    raise Exception(f'The node "{source.name}" is connected to an end event.'
+                                    'Please delete the directly connected end node!')
 
     def get_as_adjacent_dict(self):
        return self.graph

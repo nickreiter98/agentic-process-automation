@@ -27,6 +27,8 @@ There are three different ways, you can execute the software:
 
 **Streamlit:** To execute the software with a nice GUI, you have to run the programm with `streamlit run app_st.py` in your shell
 
+**Terminal** Enter into your terminal `python3 app.py`. Then you can interact with the console and type in your desired workflow to execute
+
 **Test:** To run tests on your local machine, please move to the directory test `cd test` and then start the test script with `python3 app_test.py`. You can change the textual workflows to test in the `workflow_description.csv` file. It stores the output of a run in pdf.
 
 

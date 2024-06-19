@@ -10,6 +10,7 @@ import pickle
 import tempfile
 import mimetypes
 import shutil
+import random
 
 from dotenv import load_dotenv
 from email.message import EmailMessage
@@ -121,7 +122,7 @@ def d_write_text(text_content:str, context_info:str) -> str:
 
     output = res.choices[0].message.content
 
-    return output
+    return {'written_text': output}
 
 def d_store_text_to_disc(content:str, file_name:str):
     """stores any textual representation in a file
@@ -180,7 +181,7 @@ def d_get_wikipedia_page(page:str) -> str:
         page = next(iter(response['query']['pages'].values()))
         wikicode = page['revisions'][0]['*']
         parsed_wikicode = mwparserfromhell.parse(wikicode)
-        return parsed_wikicode.strip_code()
+        return {'wikipedia_text':parsed_wikicode.strip_code()}
     except Exception as e:
         raise Exception(f"Error while getting the wikipedia page")
 
@@ -212,7 +213,7 @@ def d_apply_natural_language_task(content: str, task: str) -> str:
 
     output = res.choices[0].message.content
 
-    return output
+    return {'transformed_textual_content':output}
 
 def d_upload_to_medium(content:str, title:str) -> dict:
     """uploads a blog post to medium
@@ -319,6 +320,142 @@ def d_store_speech_to_disk(path_name:str, filename:str='output') -> None:
     """
     shutil.copy(path_name, f'output/{filename}.mp3')
 
+
+def d_get_dhl_tracking_history(id:str) -> dict:
+    """get the tracking history of a shipment from DHL
+
+    :param id: the tracking number of the shipment
+    :return: the tracking history of the shipment
+    """
+
+    tracking_history = {
+        "shipmentTrackingResponse": {
+            "trackingNumber": id,
+            "status": "success",
+            "shipmentDetails": {
+            "shipmentID": "0987654321",
+            "service": "Express",
+            "origin": {
+                "country": "Germany",
+                "city": "Berlin",
+                "postalCode": "10115"
+            },
+            "destination": {
+                "country": "USA",
+                "city": "New York",
+                "postalCode": "10001"
+            },
+            "pickupDate": "2023-06-15T10:00:00Z",
+            "deliveryDate": "2023-06-18T15:00:00Z",
+            "currentStatus": "Delivered",
+            "weight": {
+                "value": 2.5,
+                "unit": "kg"
+            },
+            "dimensions": {
+                "length": 30,
+                "width": 20,
+                "height": 10,
+                "unit": "cm"
+            }
+            },
+            "events": [
+            {
+                "timestamp": "2023-06-15T10:00:00Z",
+                "location": "Berlin, Germany",
+                "status": "Shipment picked up"
+            },
+            {
+                "timestamp": "2023-06-16T12:00:00Z",
+                "location": "Leipzig, Germany",
+                "status": "Shipment in transit"
+            },
+            {
+                "timestamp": "2023-06-17T08:00:00Z",
+                "location": "London, UK",
+                "status": "Customs clearance completed"
+            },
+            {
+                "timestamp": "2023-06-18T15:00:00Z",
+                "location": "New York, USA",
+                "status": "Delivered"
+            }
+            ]
+        }
+    }
+    return tracking_history
+
+def d_get_banking_account_summary(user_id:int) -> dict:
+    """Get the banking account summary of a user inlcuding the balance and the last 10 transactions
+
+    :param user_id: the id of the user
+    :return: the banking account summary including the balance and the last 10 transactions
+    """
+    financial_issue = random.choice([True, False])
+    summary ={
+        "userId": "123456",
+        "userEmail": "test-user@web.de",
+        "bankStatement": {
+            "balance": 150.75,
+            "transactions": [
+            {
+                "date": "2024-06-01",
+                "description": "Grocery Store",
+                "amount": -50.25
+            },
+            {
+                "date": "2024-06-03",
+                "description": "Salary",
+                "amount": 2000.00
+            },
+            {
+                "date": "2024-06-05",
+                "description": "Electricity Bill",
+                "amount": -100.75
+            },
+            {
+                "date": "2024-06-07",
+                "description": "Gas Station",
+                "amount": -40.00
+            },
+            {
+                "date": "2024-06-10",
+                "description": "Gym Membership",
+                "amount": -30.00
+            },
+            {
+                "date": "2024-06-12",
+                "description": "Dinner",
+                "amount": -60.00
+            },
+            {
+                "date": "2024-06-14",
+                "description": "Rent",
+                "amount": -800.00
+            },
+            {
+                "date": "2024-06-16",
+                "description": "Internet Bill",
+                "amount": -50.00
+            },
+            {
+                "date": "2024-06-18",
+                "description": "Car Payment",
+                "amount": -250.00
+            },
+            {
+                "date": "2024-06-19",
+                "description": "Medical Bill",
+                "amount": -100.00
+            }
+            ]
+        },
+        "financialIssues": financial_issue
+    }
+
+    return summary
+
+
 ############ END API FUNCTIONS ############
 
 ############ START GOOGLE APIS ############
@@ -419,7 +556,7 @@ def d_get_google_document(document_id:str) -> dict[str, str]:
                 if 'textRun' in paragraph_element:
                     text += paragraph_element['textRun']['content']
 
-    return {'text':text}
+    return {'google_document_text':text}
 
 def d_create_google_document(title:str) -> dict[str, str]:
     """create a new google document
@@ -435,7 +572,7 @@ def d_create_google_document(title:str) -> dict[str, str]:
     }
     document = service.documents().create(body=document).execute()
     document_id = document.get('documentId')
-    return {'document_id':document_id}
+    return {'google_document_id':document_id}
 
 
 def d_update_google_document(text:str, document_id:str):
@@ -599,9 +736,9 @@ def d_append_values_to_google_sheet(spreadsheet_id:str, values:List[List[str]]):
 
 def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Tabellenblatt1') -> dict:
     """
-    :param spreadsheet_id: _description_
+    :param spreadsheet_id: id of the google sheet
     :param range_noation: range of values to be retrieved in A1 notation
-    :return: _description_
+    :return: dictionary containing the values of the google sheet
     """
     credentials = _get_google_oauth_credentials()
 
@@ -613,6 +750,31 @@ def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Tabel
     values = request.execute()
 
     return values
+
+def d_create_event_in_calender(start_datetime:str, end_datetime:str, summary:str):
+    """creates an event in a google calendar
+
+    :param start_datetime: the start time of the event in RFC3339 format
+    :param end_datetime: end time of the event in RFC3339 format
+    :param summary: _description of the event
+    :param calendar_id: the id of the calendar to create the event in
+    """
+
+    event = {
+        "end": {
+            "dateTime": end_datetime
+        },
+        "start": {
+            "dateTime": start_datetime
+        },
+        "summary": summary,
+    }
+
+    calendar_id:str = "nick.reiter6.11.98@gmail.com"
+    credentials = _get_google_oauth_credentials()
+    service = build('calendar', 'v3', credentials=credentials)
+    event = service.events().insert(calendarId=calendar_id, body=event).execute()
+
 ############## END GOOGLE APIS ############
 
 

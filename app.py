@@ -9,7 +9,7 @@ httpx_logger = logging.getLogger("httpx")
 httpx_logger.setLevel(logging.CRITICAL)
 
 from src.execution.executer import WorkflowExecutor
-from src.modelling.model_generation import generate_model
+from src.modelling.workflow_generation import generate_workflow
 
 if __name__ == '__main__':
    
@@ -26,7 +26,7 @@ if __name__ == '__main__':
          print(Fore.RED + 'Enter your Textual Workflow to be modelled and excecuted:' + Style.RESET_ALL)
          workflow = input(Fore.GREEN + 'Workflow: ' + Style.RESET_ALL)
 
-         process = generate_model(workflow, 10)
+         process = generate_workflow(workflow, 10)
          
          print(process.__str__())
 

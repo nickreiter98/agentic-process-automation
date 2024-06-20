@@ -4,7 +4,7 @@ import streamlit as st
 from datetime import date
 
 from src.execution.executer import WorkflowExecutor
-from src.modelling.model_generation import generate_model
+from src.modelling.workflow_generation import generate_workflow
 from src.utils.output_redirection import _print
 
 
@@ -12,7 +12,7 @@ def run_model_generator_app():
     subprocess.run(['streamlit', 'run', __file__])
 
 def _modell(workflow:str):
-    process = generate_model(workflow)
+    process = generate_workflow(workflow)
     return process
 
 def _execute(process, workflow):

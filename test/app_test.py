@@ -10,8 +10,8 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
 from src.utils.output_redirection import _print
-from src.execution.executer import Executor
-from src.modelling.model_generation import generate_model 
+from src.execution.executer import WorkflowExecutor
+from src.modelling.workflow_generation import generate_workflow 
 
 def render_pdf(current_time, name, workflow, process_text, process_image, execution_text, folder_path):
    env = Environment(loader=FileSystemLoader('.'))
@@ -49,13 +49,13 @@ if __name__ == '__main__':
       process_image = ''
       execution_text = ''
       try:
-         process = generate_model(content, 10)
+         process = generate_workflow(content, 10)
          process_text = process.__str__()
          process_gviz = process.get_bpmn()
          process_image = f'{folder_path}/{index}'
          process_gviz.render(process_image, format='png')
          try:
-            executer = Executor(content, process)
+            executer = WorkflowExecutor(content, process)
             executer.run()
             execution_text = executer.logs
             render_pdf(current_time, index, content, process_text, process_image, execution_text, folder_path)

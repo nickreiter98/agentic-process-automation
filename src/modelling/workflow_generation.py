@@ -9,7 +9,7 @@ from src.utils.output_redirection import _print
 
 from typing import List, Dict
 
-def generate_model(description:str, max_iteration:int = 5) -> str: 
+def generate_workflow(description:str, max_iteration:int = 5) -> str: 
     prompt = workflow_prompt.create_model_generation_prompt(description)
     messages = [{'role': 'user', 'content': prompt}]
 

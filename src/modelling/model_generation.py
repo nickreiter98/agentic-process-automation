@@ -9,7 +9,7 @@ from src.utils.output_redirection import _print
 
 from typing import List, Dict
 
-def generate_model(description:str, max_iteration:int = 10) -> str: 
+def generate_model(description:str, max_iteration:int = 5) -> str: 
     prompt = workflow_prompt.create_model_generation_prompt(description)
     messages = [{'role': 'user', 'content': prompt}]
 
@@ -31,8 +31,8 @@ def generate_model(description:str, max_iteration:int = 10) -> str:
             return local_vars['model']
         except Exception as e:
             error_description = str(e)
-            new_message = f" Executing your code led to an error! Please update the model to fix the error." \
-                          f" This is the error message: {error_description}"
+            new_message = (f" Executing your code led to an error! Please update the model to fix the error."
+                           f" This is the error message: {error_description}")
             logging.info(new_message)
             _print(f'{new_message}')
             messages.append({'role': 'user', 'content': new_message})

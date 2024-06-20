@@ -1,4 +1,4 @@
-from src.modelling.generator import ModelGenerator
+from src.modelling.workflow_processor import WorkflowProcessor
 
 d1 = (
     "The user has to register for the app. After registering the user can"
@@ -9,7 +9,7 @@ d1 = (
 
 
 def m1():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     register = model.create_task("register for app")
@@ -46,7 +46,7 @@ d2 = (
 
 
 def m2():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     bank_account = model.create_task("get bank account of user 214423")
@@ -75,7 +75,7 @@ d3 = (
 
 
 def m3():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     extract_info = model.create_task(
@@ -114,7 +114,7 @@ d4 = (
 
 
 def m4():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     a = model.create_task("A")
@@ -145,7 +145,7 @@ de1 = (
 
 
 def me1():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     register = model.create_task("register for app")
@@ -176,7 +176,7 @@ de2 = (
 
 
 def me2():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     get_status = model.create_task("get status of user ticket 123455")
@@ -204,7 +204,7 @@ de3 = (
 
 
 def me3():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     a = model.create_task("A")
@@ -239,7 +239,7 @@ de4 = (
 
 
 def me4():
-    model = ModelGenerator()
+    model = WorkflowProcessor()
 
     start = model.create_start_event()
     a = model.create_task("A")

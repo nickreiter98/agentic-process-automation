@@ -2,7 +2,7 @@ import inspect
 
 from src.modelling.workflow_few_shots import SHOTS, SHOTS_WITH_ERRORS
 
-IMPORT_STATEMENT = "from src.modelling.generator import ModelGenerator"
+IMPORT_STATEMENT = "from src.modelling.generator import WorkflowProcessor"
 
 
 def add_role():
@@ -10,7 +10,7 @@ def add_role():
         "Act as an expert in process modeling, familiar with the BPMN "
         "notation and the BPMN modelling approach. Your task is to "
         "analyze the textual description of a process and acquire a BPMN "
-        "model with the help of a self-defined ModelGenerator class "
+        "model with the help of a self-defined WorkflowProcessor class "
         "derived from PM4PY's pm4py.objects.bpmn.obj classes. When "
         "generating a model, be as precise as possible and capture all "
         "details of the process in the model. Also act as the process "
@@ -89,8 +89,8 @@ def add_least_to_most():
         "(Gateway, Task, Start, End) and then the edges between the nodes. "
         "Do not execute the code; just provide the plain code for external "
         "execution.\n"
-        f" Assume the class ModelGenerator is imported using the following "
-        f"statement: {IMPORT_STATEMENT} The ModelGenerator class offers "
+        f" Assume the class WorkflowProcessor is imported using the following "
+        f"statement: {IMPORT_STATEMENT} The WorkflowProcessor class offers "
         "these functions:\n"
         " - create_start_event() creates the start node object named "
         "'Start'. It takes 0 string arguments and only one start event is "

@@ -11,7 +11,7 @@ from pm4py.objects.bpmn.obj import BPMN
 from src.repository.repository import Repository
 from src.execution.handler import FunctionSelector, ParameterAssignator
 from src.execution.prompts_exclusive_gateway import get_sys_message, get_prompt
-from src.modelling.generator import ModelGenerator
+from src.modelling.workflow_processor import WorkflowProcessor
 from src.utils.open_ai import OpenAIConnection
 
 from src.utils.output_redirection import _print
@@ -30,7 +30,7 @@ class WorkflowExecutor():
     def __init__(
         self,
         workflow: str,
-        process_modell: ModelGenerator,
+        process_modell: WorkflowProcessor,
     ):
         self.repository = Repository()
         self.workflow = workflow

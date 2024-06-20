@@ -6,8 +6,6 @@ d1 = (
     " and pays the product. If the payment was successfull, the product is"
     " shipped. if no, the transaction is aborted."
 )
-
-
 def m1():
     model = WorkflowProcessor()
 
@@ -38,13 +36,10 @@ def m1():
 
     model.initialize()
 
-
 d2 = (
     "Get the bank account of user 214423. Write an email to the user and"
     " also send a message to the support team."
 )
-
-
 def m2():
     model = WorkflowProcessor()
 
@@ -65,15 +60,12 @@ def m2():
 
     model.initialize()
 
-
 d3 = (
     "Extract information from the wikipedia page about python (programming language)."
     " Then write a summary of the information. Afterwards you are sending the summary"
     " via email, Slack and also store it on your local machine. After that you are"
     " checking whether the sending was successful"
 )
-
-
 def m3():
     model = WorkflowProcessor()
 
@@ -106,13 +98,10 @@ def m3():
 
     model.initialize()
 
-
 d4 = (
     "The process is started with A. After A, B and C are executed. After both"
     " of them D is following"
 )
-
-
 def m4():
     model = WorkflowProcessor()
 
@@ -142,8 +131,6 @@ de1 = (
     "First, register for the app. Then access the app. After that, add a"
     " product to the cart."
 )
-
-
 def me1():
     model = WorkflowProcessor()
 
@@ -161,8 +148,6 @@ def me1():
     model.create_edge(parallel_gateway_1, end)
 
     model.initialize()
-
-
 ee1 = (
     "This process model violates the rule that every end of a process stream"
     " must end with an end event. Also the parallel gateway is not used correctly"
@@ -173,8 +158,6 @@ de2 = (
     "First at all, try to get the status of user ticket 123455. Then send the"
     " status of the ticket to the user and also to the support team."
 )
-
-
 def me2():
     model = WorkflowProcessor()
 
@@ -188,8 +171,6 @@ def me2():
     model.create_edge(send_status, end_1)
 
     model.initialize()
-
-
 ee2 = (
     "In this process two activities are combined in one task. This must be"
     " avoided under all circumstances. The proper way to model this process"
@@ -201,8 +182,6 @@ de3 = (
     "In this process, start with A. Afterwards, B is executed. After B, C and"
     " D are simultaneously executed. After C and D, E is executed."
 )
-
-
 def me3():
     model = WorkflowProcessor()
 
@@ -223,8 +202,6 @@ def me3():
     model.create_edge(c, e)
     model.create_edge(d, e)
     model.create_edge(e, end)
-
-
 ee3 = (
     "In this process, the parallel branches are not modelled correctly."
     " After C and D, both parallel branches are converging to E. Since no"
@@ -236,8 +213,6 @@ de4 = (
     "Firstly, A is triggered. A is followed by B. To end the process, C and"
     " D are triggered"
 )
-
-
 def me4():
     model = WorkflowProcessor()
 
@@ -263,8 +238,6 @@ def me4():
     model.create_edge(parallel_gateway_1b, end_2)
 
     model.initialize()
-
-
 ee4 = (
     "In this process, the parallel gateways '1a' and '1b' are not used"
     " correctly. Normally, parallel gateways are used for diverging a process"
@@ -274,5 +247,6 @@ ee4 = (
 )
 
 SHOTS = [(d1, m1), (d2, m2), (d3, m3), (d4, m4)]
-SHOTS_WITH_ERRORS = [(de1, me1, ee1), (de2, me2, ee2),
-                     (de3, me3, ee3), (de4, me4, ee4)]
+SHOTS_WITH_ERRORS = [
+    (de1, me1, ee1), (de2, me2, ee2), (de3, me3, ee3), (de4, me4, ee4)
+]

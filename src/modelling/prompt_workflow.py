@@ -4,7 +4,6 @@ from src.modelling.prompt_workflow_few_shots import SHOTS, SHOTS_WITH_ERRORS
 
 IMPORT_STATEMENT = "from src.modelling.generator import WorkflowProcessor"
 
-
 def add_role():
     return (
         "Act as an expert in process modeling, familiar with the BPMN "
@@ -17,7 +16,6 @@ def add_role():
         "owner and use your expertise and familiarity with the process "
         "context to fill in any missing knowledge.\n\n"
     )
-
 
 def add_knowledge():
     return (
@@ -78,7 +76,6 @@ def add_knowledge():
         "events properly conclude all process threads.\n\n"
     )
 
-
 def add_least_to_most():
     return (
         "Provide the Python code that sequentially models the process as "
@@ -118,10 +115,8 @@ def add_least_to_most():
         "are used, no converging ones!\n\n"
     )
 
-
 def add_process_description(process_description):
     return f"This is the process description to be modelled:\n" f"{process_description}"
-
 
 def add_self_evaluation():
     return (
@@ -132,7 +127,6 @@ def add_self_evaluation():
         "parallel stream separately!\n\n"
     )
 
-
 def add_output_pattern():
     return (
         "At the end of your response provide a only single Python code "
@@ -141,7 +135,6 @@ def add_output_pattern():
         "text. Also do not indent any code snippet. The code snippet should "
         "be executable as a script."
     )
-
 
 def add_few_shots():
     res = "Please use few-shots learning. These are few illustrating shots.\n"
@@ -158,14 +151,13 @@ def add_few_shots():
         res += f"```python\n{IMPORT_STATEMENT}\n{content_as_string}\n```\n\n"
     return res
 
-
 def add_few_shots_with_errors():
     res = (
         "Additional to the previous few-shots, there are negative few-shots. "
         "These negative few shots contain the description of the process, "
         "the linked code and the error, why the model is not correct.\n"
     )
-
+    
     for i, shot in enumerate(SHOTS_WITH_ERRORS):
         description, model, error = shot
         full_source = inspect.getsource(model)
@@ -189,5 +181,4 @@ def create_model_generation_prompt(process_description: str) -> str:
     prompt = prompt + add_output_pattern()
     prompt = prompt + add_self_evaluation()
     prompt = prompt + add_process_description(process_description)
-
     return prompt

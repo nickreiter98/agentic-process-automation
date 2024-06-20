@@ -35,7 +35,7 @@ class WorkflowExecutor():
         self.process_modell = process_modell 
         self.selector = FunctionSelector(self.repository)
         self.assignator = ParameterAssignator(self.repository)
-        self.connection = OpenAIConnection()
+        self.llm_connection = OpenAIConnection()
 
     def _execute_exlusive_gateway(self, node:ExclusiveGateway, output:str) -> Node:
         node_2_condition = {
@@ -50,7 +50,7 @@ class WorkflowExecutor():
             "content": get_prompt(node.name, conditions, output)
         } 
         message = [sys_message, prompt]
-        response = self.connection.request(message)
+        response = self.llm_connection.request(message)
 
         DICT_PATTERN = r"{(.*?)}"
         ERROR_PATTERN = r"Condition error"

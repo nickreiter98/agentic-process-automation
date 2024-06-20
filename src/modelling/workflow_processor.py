@@ -125,7 +125,7 @@ class WorkflowProcessor:
         self._check_graph_for_abnormalities()
 
     def _check_graph_for_abnormalities(self):
-        logging.info("Checking graph for abnormalities")
+        print("Checking graph for abnormalities")
         self._check_start()
         for node in self.bpmn.get_graph():
             if self.is_start_event(node) or self.is_task(node):
@@ -136,7 +136,6 @@ class WorkflowProcessor:
             elif self.is_exclusive_gateway(node) or self.is_parallel_gateway:
                 self._check_target_nodes(node)
                 self._check_source_nodes(node)
-        logging.info("Graph is free of abnormalities")
 
     def _check_start(self) -> None:
         start_nodes = [node for node in self.graph if self.is_start_event(node)]

@@ -8,7 +8,7 @@ from src.utils.output_redirection import _print
 httpx_logger = logging.getLogger("httpx")
 httpx_logger.setLevel(logging.CRITICAL)
 
-from src.execution.executer import Executor
+from src.execution.executer import WorkflowExecutor
 from src.modelling.model_generation import generate_model
 
 if __name__ == '__main__':
@@ -30,7 +30,7 @@ if __name__ == '__main__':
          
          print(process.__str__())
 
-         executer = Executor(workflow, process)
+         executer = WorkflowExecutor(workflow, process)
          executer.run()
          print(executer.get_log())
          print(Fore.GREEN + 'Execution completed successfully.' + Style.RESET_ALL)

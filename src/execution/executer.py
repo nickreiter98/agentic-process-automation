@@ -26,7 +26,7 @@ ParallelGateway: TypeAlias = BPMN.ParallelGateway
 Node: TypeAlias = BPMN.BPMNNode
 Edge: TypeAlias = BPMN.Flow
     
-class Executor():
+class WorkflowExecutor():
     def __init__(
         self,
         workflow: str,

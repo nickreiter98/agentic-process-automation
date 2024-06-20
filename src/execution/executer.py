@@ -25,11 +25,11 @@ Edge: TypeAlias = BPMN.Flow
 class WorkflowExecutor():
     def __init__(
         self,
-        workflow: str,
+        textual_workflow: str,
         process_modell: WorkflowProcessor,
     ):
         self.repository = Repository()
-        self.workflow = workflow
+        self.textual_workflow = textual_workflow
         self.logs = ""
         self.output_storage = []
         self.process_modell = process_modell 
@@ -66,30 +66,29 @@ class WorkflowExecutor():
             ) 
             target_condition = str(list(target_condition.values())[0])
             target_node = condition_2_node[target_condition]
-            self.logs += f"Condition is selected: {target_condition}\n"
             self._provide_logging(f"Condition is selected: {target_condition}")
 
             return target_node
         else:
             raise Exception(
-                "Neither an condition error nor the function could be mapped Please try again!"
+                "Neither an condition error nor a target node could be chosen - Please try again!"
             )
     
     def _execute_task(self, node:Task, output:str) -> Tuple[Node, str]:
-        function_name = self.selector.select(node, self.workflow)
+        interface = self.selector.select(node, self.textual_workflow)
         arguments = self.assignator.assign(
-            function_name,
-            self.workflow,
+            interface,
+            self.textual_workflow,
             self.output_storage
         )
-        self._provide_logging(f"{function_name} is selected with arguments: {arguments}")
+        self._provide_logging(f"{interface} is selected with arguments: {arguments}")
 
         try:
-            output = self.repository.retrieve_interface(function_name)(**arguments)
+            output = self.repository.retrieve_interface(interface)(**arguments)
         except Exception as e:
             raise(f"Execution of the function failed with the error: {e}")
         self._provide_logging(f"Output of the function: {output}")
-        self.output_storage.append({function_name: output})
+        self.output_storage.append({interface: output})
         target_node = self.process_modell.get_target_node(node)
         return (target_node, output)
     

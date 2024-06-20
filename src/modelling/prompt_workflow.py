@@ -2,7 +2,7 @@ import inspect
 
 from src.modelling.prompt_workflow_few_shots import SHOTS, SHOTS_WITH_ERRORS
 
-IMPORT_STATEMENT = "from src.modelling.generator import WorkflowProcessor"
+IMPORT_STATEMENT = "from src.modelling.workflow_processor import WorkflowProcessor"
 
 def add_role():
     return (

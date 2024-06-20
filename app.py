@@ -3,7 +3,6 @@ import logging
 from datetime import date
 from colorama import Fore, Back, Style
 
-from src.utils.output_redirection import _print
 
 httpx_logger = logging.getLogger("httpx")
 httpx_logger.setLevel(logging.CRITICAL)
@@ -12,14 +11,6 @@ from src.execution.executer import WorkflowExecutor
 from src.modelling.workflow_generation import generate_workflow
 
 if __name__ == '__main__':
-   
-   # logging.basicConfig(filename='build/log.log',
-   #                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-   #                   datefmt='%H:%M:%S',
-   #                   level=logging.INFO)
-   # logger = logging.getLogger("httpx")
-   # logger.setLevel(logging.CRITICAL)
-   # logger = logging.getLogger(__name__)
 
    while True:
       try:

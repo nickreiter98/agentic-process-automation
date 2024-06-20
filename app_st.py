@@ -5,7 +5,6 @@ from datetime import date
 
 from src.execution.executer import WorkflowExecutor
 from src.modelling.workflow_generation import generate_workflow
-from src.utils.output_redirection import _print
 
 
 def run_model_generator_app():
@@ -22,9 +21,9 @@ def _execute(process, workflow):
 
 
 def run_app():
-    _print('+++++++++++++++++++++++')
-    _print(f'NEW WORKFLOW WITH DATE: {date.today()}')
-    _print('MODEL: gpt-4o')
+    print('+++++++++++++++++++++++')
+    print(f'NEW WORKFLOW WITH DATE: {date.today()}')
+    print('MODEL: gpt-4o')
 
     st.title('🤖 Agentic Process Automation')
     st.subheader("Automatic Textual Workflow Execution with Generative AI")
@@ -50,7 +49,7 @@ def run_app():
         )        
         submit_button = st.form_submit_button(label='Run')
 
-        _print(workflow)
+        print(workflow)
 
     if submit_button:
         try:
@@ -65,7 +64,7 @@ def run_app():
             string_representation = st.session_state['model_gen'].__str__()
             pic_representation = st.session_state['model_gen'].get_bpmn()
 
-            _print(string_representation)
+            print(string_representation)
 
             st.success("Workflow modelled successfully!", icon="🎉")
             with st.expander("View Image", expanded=True):
@@ -85,7 +84,7 @@ def run_app():
             if 'model_exe' in st.session_state and st.session_state['model_exe'] is not None:
                 log_representation = st.session_state['model_exe'].get_log()
 
-                _print(log_representation)
+                print(log_representation)
 
                 st.success("Workflow also executed successfully!", icon="🎉")
                 st.text('The execution log is as follows:\n\n'

@@ -10,7 +10,7 @@ from src.execution.handler import FunctionSelector, ParameterAssignator
 from src.execution.prompt_exclusive_gateway import get_sys_message, get_prompt
 from src.modelling.workflow_processor import WorkflowProcessor
 from src.utils.open_ai import OpenAIConnection
-from src.utils.output_redirection import _print
+
 
 # Define type hints
 from typing import Tuple, TypeAlias
@@ -66,9 +66,8 @@ class WorkflowExecutor():
             ) 
             target_condition = str(list(target_condition.values())[0])
             target_node = condition_2_node[target_condition]
-            logging.info(f"Condition is selected: {target_condition}")
             self.logs += f"Condition is selected: {target_condition}\n"
-            _print(f"Condition is selected: {target_condition}")
+            self._provide_logging(f"Condition is selected: {target_condition}")
 
             return target_node
         else:
@@ -83,55 +82,42 @@ class WorkflowExecutor():
             self.workflow,
             self.output_storage
         )
-        logging.info(f"{function_name} is selected with arguments: {arguments}")
-        self.logs += f"{function_name} is selected with arguments: {arguments}\n"
-        _print(f"{function_name} is selected with arguments: {arguments}")
+        self._provide_logging(f"{function_name} is selected with arguments: {arguments}")
 
         try:
             output = self.repository.retrieve_interface(function_name)(**arguments)
         except Exception as e:
             raise(f"Execution of the function failed with the error: {e}")
-        
+        self._provide_logging(f"Output of the function: {output}")
         self.output_storage.append({function_name: output})
-        self.logs += f"Output of the function: {output}\n"
-        _print(f"Output of the function: {output}")
         target_node = self.process_modell.get_target_node(node)
         return (target_node, output)
     
     def _iterate_workflow(self, current_node:Node, output:str) -> None:
         while True:
             if self.process_modell.is_start_event(current_node):
-                logging.info("Process started")
-                self.logs += "Process started\n"
-                _print("Process started")
+                self._provide_logging("Process execution started")
                 current_node = self.process_modell.get_target_node(current_node)
             elif self.process_modell.is_task(current_node):
-                logging.info(f"Execution of task: {current_node.get_name()}")
-                self.logs += f"Execution of task: {current_node.get_name()}\n"
-                _print(f"Execution of task: {current_node.get_name()}")
+                self._provide_logging(f"Execution of task: {current_node.get_name()}")
                 current_node, output = self._execute_task(current_node, output)
             elif self.process_modell.is_exclusive_gateway(current_node):
-                logging.info(f"Execution of parallel gateway: {current_node.get_name()}")
-                self.logs += f"Execution of parallel gateway: {current_node.get_name()}\n"
-                _print(f"Execution of parallel gateway: {current_node.get_name()}")
+                self._provide_logging(f"Execution of exclusive gateway: {current_node.get_name()}")
                 current_node = self._execute_exlusive_gateway(current_node, output)
             elif self.process_modell.is_parallel_gateway(current_node):
                 target_nodes = [n[0] for n in self.process_modell.get_target_nodes(current_node)]
-                processes = []
-                logging.info("Parallelity started")
-                self.logs += "Parallelity started\n"
-                _print("Parallelity started")
+                self._provide_logging("Parallelity started")
                 for node in target_nodes:
                     self._iterate_workflow(node, output)
-                logging.info("Parallelity ended")
-                self.logs += "Parallelity ended\n"
-                _print("Parallelity ended")
+                self._provide_logging("Parallelity ended")
                 break
             elif self.process_modell.is_end_event(current_node):
-                logging.info("Process ended")
-                self.logs += "Process ended\n"
-                _print("Process ended")
+                self._provide_logging("Process execution ended")
                 break
+
+    def _provide_logging(self, text:str) -> None:
+        self.logs += text + "\n"
+        print(text)
 
     def run(self) -> None:        
         current_node = self.process_modell.get_start_node()

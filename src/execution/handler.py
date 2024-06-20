@@ -30,7 +30,7 @@ class FunctionSelector:
 
     def select(self, node:Node, workflow:str) -> str:
         sys_message = {'role': 'system',
-                       'content': prompt_selection.get_sys_message(self.repository.get_function_to_json())}
+                       'content': prompt_selection.get_sys_message(self.repository.retrieve_json_representations())}
         prompt = {'role': 'user',
                   'content': prompt_selection.get_prompt(node)}
         message = [sys_message, prompt]
@@ -38,13 +38,13 @@ class FunctionSelector:
         DICT_PATTERN = r'{(.*?)}'
         ERROR_PATTERN = r'Selection error'
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
-            raise Exception(f'Mapping error - No function can be mapped to the activity "{node.name}"')
+            raise Exception(f'Mapping error - No interface can be mapped to the activity "{node.name}"')
         elif re.search(DICT_PATTERN, response, re.DOTALL):
             match = re.search(DICT_PATTERN, response, re.DOTALL).group()
-            function_name = json.loads(match)
-            assert len(function_name) == 1, ("Multiple functions selected -"
-                                             " Only one function can be selected") 
-            return list(function_name.values())[0]
+            interface = json.loads(match)
+            assert len(interface) == 1, ("Multiple interfaces selected -"
+                                             " Only one interface can be selected") 
+            return list(interface.values())[0]
         else:
             raise Exception("Neither an assignation error nor arguments could be detected"
                             " within the response. Please try again!")
@@ -57,11 +57,11 @@ class ParameterAssignator:
          self.connection = OpenAIConnection()
          self.repository = repository
 
-    def assign(self, function_name:str, workflow:str, output_storage) -> str:
+    def assign(self, interface:str, workflow:str, output_storage) -> str:
         sys_message = {'role': 'system', 
                        'content': prompt_arguments.get_sys_message()}
         prompt = {'role': 'user', 
-                  'content': prompt_arguments.get_prompt(self.repository.get_json_by_name(function_name),
+                  'content': prompt_arguments.get_prompt(self.repository.retrieve_json_representation_by_name(interface),
                                                           workflow,
                                                           output_storage)}
         message = [sys_message, prompt]
@@ -70,7 +70,7 @@ class ParameterAssignator:
         DICT_PATTERN = r'{(.*?)}'
         ERROR_PATTERN = r'Assignation error'
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
-            raise Exception(f'Assignation error - No parameters can be assigned to the function "{function_name}"')
+            raise Exception(f'Assignation error - No parameters can be assigned to the interface "{interface}"')
         elif re.search(DICT_PATTERN, response, re.DOTALL):
             match = re.search(DICT_PATTERN, response, re.DOTALL).group()
             arguments = json.loads(match)

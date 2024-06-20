@@ -37,8 +37,8 @@ class WorkflowExecutor():
         self.logs = ''
         self.output_storage = []
         self.process_modell = process_modell 
-        self.selector = FunctionSelector(repository=self.repository)
-        self.assignator = ParameterAssignator(repository=self.repository)
+        self.selector = FunctionSelector(self.repository)
+        self.assignator = ParameterAssignator(self.repository)
         self.connection = OpenAIConnection()
 
     def _execute_exlusive_gateway(self, node:ExclusiveGateway, output:str) -> Node:
@@ -79,7 +79,7 @@ class WorkflowExecutor():
         _print(f'{function_name} is selected with arguments: {arguments}')
 
         try:
-            output = self.repository.get_function_by_name(function_name)(**arguments)
+            output = self.repository.retrieve_interface(function_name)(**arguments)
         except Exception as e:
             raise(f'Execution of the function failed with the error: {e}')
         

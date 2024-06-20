@@ -3,7 +3,7 @@ import json
 import re
 
 from src.utils.open_ai import OpenAIConnection
-from src.execution import prompts_selection, prompts_arguments
+from src.execution import prompt_arguments, prompt_selection
 from src.repository.repository import Repository
 
 from openai import OpenAI
@@ -30,9 +30,9 @@ class FunctionSelector:
 
     def select(self, node:Node, workflow:str) -> str:
         sys_message = {'role': 'system',
-                       'content': prompts_selection.get_sys_message(self.repository.get_function_to_json())}
+                       'content': prompt_selection.get_sys_message(self.repository.get_function_to_json())}
         prompt = {'role': 'user',
-                  'content': prompts_selection.get_prompt(node)}
+                  'content': prompt_selection.get_prompt(node)}
         message = [sys_message, prompt]
         response = self.connection.request(message)
         DICT_PATTERN = r'{(.*?)}'
@@ -59,9 +59,9 @@ class ParameterAssignator:
 
     def assign(self, function_name:str, workflow:str, output_storage) -> str:
         sys_message = {'role': 'system', 
-                       'content': prompts_arguments.get_sys_message()}
+                       'content': prompt_arguments.get_sys_message()}
         prompt = {'role': 'user', 
-                  'content': prompts_arguments.get_prompt(self.repository.get_json_by_name(function_name),
+                  'content': prompt_arguments.get_prompt(self.repository.get_json_by_name(function_name),
                                                           workflow,
                                                           output_storage)}
         message = [sys_message, prompt]

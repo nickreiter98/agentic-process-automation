@@ -3,14 +3,14 @@ import logging
 from openai import OpenAI
 
 from src.modelling.code_extraction import extract_final_python_code
-from src.modelling import workflow_prompt
+from src.modelling import prompt_workflow
 from src.utils.open_ai import OpenAIConnection
 from src.utils.output_redirection import _print
 
 from typing import List, Dict
 
 def generate_workflow(description:str, max_iteration:int = 5) -> str: 
-    prompt = workflow_prompt.create_model_generation_prompt(description)
+    prompt = prompt_workflow.create_model_generation_prompt(description)
     messages = [{'role': 'user', 'content': prompt}]
 
     connection = OpenAIConnection()

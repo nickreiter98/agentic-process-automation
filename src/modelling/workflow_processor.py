@@ -96,37 +96,54 @@ class WorkflowProcessor:
 
     def __str__(self) -> str:
         graph = ""
+        # Iterate over all nodes
         for node in self.bpmn.get_nodes():
             if self.is_exclusive_gateway(node):
+                # Pretty print all target nodes with conditions
                 for i, (target, condition) in enumerate(self.get_target_nodes(node)):
+                    # First target node of the gateway
                     if i == 0:
                         graph += (
                             f"{node.name} -> {target.name} [condition='{condition}']"
                         )
+                    # All other target nodes of the gateway
                     else:
                         graph += f" & {target.name} [condition='{condition}']"
                     graph += "\n"
             elif self.is_parallel_gateway(node):
-                for i, (target, condition) in enumerate(self.get_target_nodes(node)):
+                for i, (target, _) in enumerate(self.get_target_nodes(node)):
+                    # First target node of the gateway
                     if i == 0:
                         graph += f"{node.name} -> {target.name}"
+                    # All other target nodes of the gateway
                     else:
                         graph += f" & {target.name}"
                     graph += "\n"
+            # End events are not pretty printed
             elif self.is_end_event(node):
                 continue
+            # Start event and tasks
             else:
                 graph += f"{node.name} -> {self.get_target_node(node).name}\n"
         return graph
 
-    def initialize(self):
+    def initialize(self) -> None:
+        """Initialize the model and check for abnormalities.
+        """
+        # Get the graph representation
         orig_graph = self.bpmn.get_graph()
+        # Initalize by transforming the graph to a dictionary of dictionaries
         self.graph = nx.to_dict_of_dicts(orig_graph)
+        # Check the graph for abnormalities
         self._check_graph_for_abnormalities()
 
-    def _check_graph_for_abnormalities(self):
+    def _check_graph_for_abnormalities(self) -> None:
+        """Check the graph for abnormalities by iterating every node of the graph.
+        Abnormalities are checked by inspecting source and target nodes.
+        """
         print("Checking graph for abnormalities")
-        self._check_start()
+        self._check_start_node()
+        # Iterate over all nodes
         for node in self.bpmn.get_graph():
             if self.is_start_event(node) or self.is_task(node):
                 self._check_target_node(node)
@@ -137,7 +154,16 @@ class WorkflowProcessor:
                 self._check_target_nodes(node)
                 self._check_source_nodes(node)
 
-    def _check_start(self) -> None:
+    def _check_start_node(self) -> None:
+        """Check the start node for abnormalities.
+        The abnormality is there must be only one start node.
+        If abnormalities found, raise Exception to provide information for
+        overlying module.
+
+        :raises Exception: If start_nodes is empty
+        :raises Exception: If start_nodes comprises more than one start nodes
+        """
+        # Store all start nodes in  list
         start_nodes = [node for node in self.graph if self.is_start_event(node)]
         if not start_nodes:
             raise Exception("No start node found. Please add a start node")
@@ -146,7 +172,18 @@ class WorkflowProcessor:
                 "Multiple start nodes found. Please remove all but one start node"
             )
 
+    # TODO: Add function to check whether predecessor of end event is exclusive or parallel gateway
     def _check_source_nodes(self, node: Node) -> None:
+        """Check the source nodes of a given node for abnormalities.
+        The abnormality is that a node must always be preceded by only one node.
+        If abnormalities found, raise Exception to provide information for
+        overlying module.
+
+        :param node: The node to check for abnormalities
+        :raises Exception: Node doesnt posses an source node
+        :raises Exception: Node posses more than one source nodes
+        """
+        # Start event was already checked - skip
         if self.is_start_event(node):
             None
         elif (
@@ -155,52 +192,73 @@ class WorkflowProcessor:
             or self.is_parallel_gateway(node)
             or self.is_end_event(node)
         ):
-            if not node.get_in_arcs():
+            # get the incoming arcs of the node
+            incoming_arcs = node.get_in_arcs()
+            if not incoming_arcs:
                 raise Exception(
                     f"The node '{node.name}' doesnt posses an source node."
                     " Please create an edge from a source node to it!"
                 )
-            elif len(node.get_in_arcs()) > 1:
+            elif len(incoming_arcs) > 1:
                 raise Exception(
                     f"The node '{node.name}' posses too many source nodes."
                     " Please remove all but one edge. Check as well whether"
-                    " node should be a parallel stream!"
+                    " node might be a parallel stream!"
                 )
             else:
                 None
 
-    def _check_target_node(self, source: Node) -> None:
-        out_arcs = source.get_out_arcs()
+    def _check_target_node(self, node: Node) -> None:
+        """Check the target node of a given node for abnormalities.
+        The abnormality is that a node must always be followed by only one node.
+        If abnormalities found, raise Exception to provide information for
+        overlying module.
+
+        :param node: Start event and tasks to check for abnormalities 
+        :raises Exception: Node posses more than one target node
+        :raises Exception: Node doesnt posses a target node
+        """
+        # Get the out arcs of the node
+        out_arcs = node.get_out_arcs()
         if len(out_arcs) > 1:
             raise Exception(
-                f"The node '{source.name}' contains multiple target nodes. "
+                f"The node '{node.name}' contains multiple target nodes. "
                 f"Please remove all  edges but one or check whether the node "
                 f"could be modelled as a parallel/exclusive gateway."
             )
         if len(out_arcs) == 0:
             raise Exception(
-                f"The node '{source.name}' is not connected to a target node."
+                f"The node '{node.name}' is not connected to a target node."
                 "Please create an edge to one target node!"
             )
 
-    def _check_target_nodes(self, source: ExclusiveGateway | ParallelGateway) -> None:
-        out_arcs = source.get_out_arcs()
+    def _check_target_nodes(self, gateway: ExclusiveGateway | ParallelGateway) -> None:
+        """Check the target nodes of a given gateway for abnormalities.
+        The abnormality is that the gateway must always be followed by at least two nodes.
+        Also an end event cannot be directly connected to a parallel gateway.
+
+        :param gateway: _descriptio
+        :raises Exception: Gateway is connected to one target node
+        :raises Exception: Gateway is not connected to target nodes
+        :raises Exception: Parallel Gateway is connected to an end event
+        """
+        # Get the out arcs of the gateway
+        out_arcs = gateway.get_out_arcs()
         if len(out_arcs) == 1:
             raise Exception(
-                f"Only one target found for node '{source.name}'. "
+                f"Only one target found for node '{gateway.name}'. "
                 "Add another target node!"
             )
         elif len(out_arcs) == 0:
             raise Exception(
-                f"The node '{source.name}' is not connected to a target node."
+                f"The node '{gateway.name}' is not connected to a target node. "
                 " Please connect it at least to two!"
             )
-
-        if self.is_parallel_gateway(source):
+        if self.is_parallel_gateway(gateway):
             for arc in out_arcs:
                 if self.is_end_event(arc.target):
                     raise Exception(
-                        f"The node '{source.name}' is connected to an end event."
+                        f"The node '{gateway.name}' is connected to an end event. "
                         "Please delete the directly connected end node!"
                     )
 

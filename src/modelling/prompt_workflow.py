@@ -138,11 +138,16 @@ def add_output_pattern():
 
 def add_few_shots():
     res = "Please use few-shots learning. These are few illustrating shots.\n"
+    # Iterate all shot examples
     for i, shot in enumerate(SHOTS):
         description, model = shot
+        # Get source code of model as str
         full_source = inspect.getsource(model)
+        # Split source code into lines
         source_lines = full_source.split("\n")
+        # Get content lines without the function header
         content_lines = source_lines[1:] + ["\n"]
+        # Join content lines to string by omitting indentation
         content_as_string = "\n".join(line[4:] for line in content_lines)
 
         res += f"EXAMPLE {i + 1}:\n"
@@ -158,21 +163,32 @@ def add_few_shots_with_errors():
         "the linked code and the error, why the model is not correct.\n"
     )
     
+    # Iterate all error shot examples
     for i, shot in enumerate(SHOTS_WITH_ERRORS):
         description, model, error = shot
+        # Get source code of model as str
         full_source = inspect.getsource(model)
+        # Split source code into lines
         source_lines = full_source.split("\n")
+        # Get content lines without the function header
         content_lines = source_lines[1:] + ["\n"]
+        # Join content lines to string by omitting indentation
         content_as_string = "\n".join(line[4:] for line in content_lines)
 
+        # Create final prompt
         res += f"EXAMPLE {i + 1}:\n"
         res += f"Process description for EXAMPLE {i + 1}:\n{description}\n"
         res += f"Process model for EXAMPLE {i + 1}:\n"
         res += f"```python\n{IMPORT_STATEMENT}\n{content_as_string}\n```\n"
-        res += f"Common errors to avoid"
+        res += f"Common errors to avoid:\n {error}\n\n"
     return res
 
-def create_model_generation_prompt(process_description: str) -> str:
+def create_model_generation_prompt(textual_workflow: str) -> str:
+    """Generates the final prompt for the model generation task.
+
+    :param textual_workflow: The textual description of the workflow.
+    :return: returns the final prompt
+    """
     prompt = add_role()
     prompt = prompt + add_knowledge()
     prompt = prompt + add_least_to_most()
@@ -180,5 +196,5 @@ def create_model_generation_prompt(process_description: str) -> str:
     prompt = prompt + add_few_shots_with_errors()
     prompt = prompt + add_output_pattern()
     prompt = prompt + add_self_evaluation()
-    prompt = prompt + add_process_description(process_description)
+    prompt = prompt + add_process_description(textual_workflow)
     return prompt

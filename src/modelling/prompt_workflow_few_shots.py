@@ -1,5 +1,6 @@
 from src.modelling.workflow_processor import WorkflowProcessor
 
+# Provide the right generation of models from the textual description
 d1 = (
     "The user has to register for the app. After registering the user can"
     " chose a product and add it to the cart. The the user is checking out"
@@ -126,7 +127,8 @@ def m4():
 
     model.initialize()
 
-
+# Provide examples which would lead to errors during model generation.
+# Also provide the error explanation
 de1 = (
     "First, register for the app. Then access the app. After that, add a"
     " product to the cart."

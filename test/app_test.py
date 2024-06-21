@@ -54,14 +54,14 @@ if __name__ == '__main__':
       execution_log = ''
       try:
          # Generate the workflow
-         workflow, iterations = generate_workflow(content, 10)
-         workflow_str = workflow.__str__()
-         worklfow_gviz = workflow.get_bpmn()
+         workflow_processor, iterations = generate_workflow(content, 10)
+         workflow_str = workflow_processor.__str__()
+         worklfow_gviz = workflow_processor.get_bpmn()
          workflow_image = f'{folder_path}/{index}'
          worklfow_gviz.render(workflow_image, format='png')
          try:
             # Execute the workflow
-            executer = WorkflowExecutor(content, workflow)
+            executer = WorkflowExecutor(content, workflow_processor)
             executer.run()
             execution_log = executer.get_log()
             render_pdf(current_time, index, content, workflow_str, workflow_image, execution_log, folder_path, iterations)
@@ -73,3 +73,4 @@ if __name__ == '__main__':
       except Exception as e:
          error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
          render_pdf(current_time, index, content, error, workflow_image, execution_log, folder_path, iterations)
+      print("++++++++++++++++++")

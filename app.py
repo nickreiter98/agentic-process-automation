@@ -10,23 +10,26 @@ httpx_logger.setLevel(logging.CRITICAL)
 from src.execution.executer import WorkflowExecutor
 from src.modelling.workflow_generation import generate_workflow
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-   while True:
-      try:
-         print(Fore.RED + 'Enter your Textual Workflow to be modelled and excecuted:' + Style.RESET_ALL)
-         workflow = input(Fore.GREEN + 'Workflow: ' + Style.RESET_ALL)
+    while True:
+        try:
+            print(
+                Fore.RED
+                + "Enter your Textual Workflow to be modelled and excecuted:"
+                + Style.RESET_ALL
+            )
+            textual_workflow = input(Fore.GREEN + "Workflow: " + Style.RESET_ALL)
 
-         process, _ = generate_workflow(workflow, 10)
-         
-         print(process.__str__())
+            workflow_processor, _ = generate_workflow(textual_workflow, 10)
 
-         executer = WorkflowExecutor(workflow, process)
-         executer.run()
-         print(executer.get_log())
-         print(Fore.GREEN + 'Execution completed successfully.' + Style.RESET_ALL)
-      except Exception as e:
-         print(e)
-         print(Fore.RED + f'An error occured. Please try again.' + Style.RESET_ALL)
-         continue
+            print(workflow_processor.__str__())
 
+            executer = WorkflowExecutor(textual_workflow, workflow_processor)
+            executer.run()
+            print(executer.get_log())
+            print(Fore.GREEN + "Execution completed successfully." + Style.RESET_ALL)
+        except Exception as e:
+            print(e)
+            print(Fore.RED + f"An error occured. Please try again." + Style.RESET_ALL)
+            continue

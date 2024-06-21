@@ -3,7 +3,7 @@ import streamlit as st
 
 from datetime import date
 
-from src.execution.executer import WorkflowExecutor
+from src.execution.executor import WorkflowExecutor
 from src.modelling.workflow_generation import generate_workflow
 
 
@@ -17,9 +17,9 @@ def _modell(textual_workflow: str):
 
 
 def _execute(workflow_processor, textual_workflow: str):
-    executer = WorkflowExecutor(textual_workflow, workflow_processor)
-    executer.run()
-    return executer
+    executor = WorkflowExecutor(textual_workflow, workflow_processor)
+    executor.run()
+    return executor
 
 
 def run_app():

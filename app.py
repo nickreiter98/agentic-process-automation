@@ -7,7 +7,7 @@ from colorama import Fore, Back, Style
 httpx_logger = logging.getLogger("httpx")
 httpx_logger.setLevel(logging.CRITICAL)
 
-from src.execution.executer import WorkflowExecutor
+from src.execution.executor import WorkflowExecutor
 from src.modelling.workflow_generation import generate_workflow
 
 if __name__ == "__main__":
@@ -25,9 +25,9 @@ if __name__ == "__main__":
 
             print(workflow_processor.__str__())
 
-            executer = WorkflowExecutor(textual_workflow, workflow_processor)
-            executer.run()
-            print(executer.get_log())
+            executor = WorkflowExecutor(textual_workflow, workflow_processor)
+            executor.run()
+            print(executor.get_log())
             print(Fore.GREEN + "Execution completed successfully." + Style.RESET_ALL)
         except Exception as e:
             print(e)

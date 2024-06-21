@@ -9,7 +9,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from src.execution.executer import WorkflowExecutor
+from src.execution.executor import WorkflowExecutor
 from src.modelling.workflow_generation import generate_workflow 
 
 def render_pdf(current_time, name, workflow, workflow_str, workflow_image, execution_text, folder_path, iterations):
@@ -61,9 +61,9 @@ if __name__ == '__main__':
          worklfow_gviz.render(workflow_image, format='png')
          try:
             # Execute the workflow
-            executer = WorkflowExecutor(content, workflow_processor)
-            executer.run()
-            execution_log = executer.get_log()
+            executor = WorkflowExecutor(content, workflow_processor)
+            executor.run()
+            execution_log = executor.get_log()
             render_pdf(current_time, index, content, workflow_str, workflow_image, execution_log, folder_path, iterations)
          # If an error occurs during the execution, render the pdf with the error
          except Exception as e:

@@ -531,7 +531,7 @@ def send_email_to(recipient: str, content: str, subject: str, file:str=None):
             .execute()
         )
     
-    if 'id' in senmessage:
+    if 'id' in send_message:
         return {"status": "Successfully sent email"}
     else:
         return {"status": "Failed to send email"}

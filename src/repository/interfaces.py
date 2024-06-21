@@ -12,7 +12,7 @@ import mimetypes
 import shutil
 import random
 
-from dotenv import load_dotenv
+from dotenv import loadotenv
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -28,7 +28,7 @@ from typing import Literal
 from PIL import Image
 from gtts import gTTS
 
-load_dotenv('.env')
+loadotenv('.env')
 
 ############ START GENERAL FUNCTIONS ############
 def _store_tempfile(data: object) -> dict:
@@ -42,7 +42,7 @@ def _store_tempfile(data: object) -> dict:
         return {'path_name': temp.name}
     
 
-def _load_tempfile(path: str) -> object:
+def _loatempfile(path: str) -> object:
     """loads a temporary file with the data
 
     :param path: path to the temporary file
@@ -54,7 +54,7 @@ def _load_tempfile(path: str) -> object:
 ############ END GENERAL FUNCTIONS ############
 
 ############ START API FUNCTIONS ############
-def d_get_current_weather(city: str):
+def get_current_weather(city: str):
     """provides current weather data for a given city
 
     :param city: name of the city
@@ -71,7 +71,7 @@ def d_get_current_weather(city: str):
     return req.json()
     
 
-def d_get_coordinates_by_city(city: str):
+def get_coordinates_by_city(city: str):
     """provides coordinates of a given city
 
     :param city: name of the city
@@ -88,7 +88,7 @@ def d_get_coordinates_by_city(city: str):
     return req.json()
 
 
-def d_write_text(text_content:str, context_info:str) -> str:
+def write_text(text_content:str, context_info:str) -> str:
     """formulates any type of text content for any type of text like email, letter, advertisement etc. .
     Provides a nicely formulated text based on the given context information.
 
@@ -124,7 +124,7 @@ def d_write_text(text_content:str, context_info:str) -> str:
 
     return {'written_text': output}
 
-def d_store_text_to_disc(content:str, file_name:str):
+def store_text_to_disc(content:str, file_name:str):
     """stores any textual representation in a file
 
     :param content: any representation containing string to be stored
@@ -133,7 +133,7 @@ def d_store_text_to_disc(content:str, file_name:str):
     with open(f'output/{file_name}', 'w') as f:
         f.write(content)
 
-def d_get_bank_account_statement(user_id:int) -> dict:
+def get_bank_account_statement(user_id:int) -> dict:
     """provides the bank account statement of a user
 
     :param use_id: id of the user
@@ -154,7 +154,7 @@ def d_get_bank_account_statement(user_id:int) -> dict:
         'account_type': account_type
     }
 
-def d_get_wikipedia_page(page:str) -> str:
+def get_wikipedia_page(page:str) -> str:
     """provides the content of a wikipedia page
 
     :param page: name of the wikipedia page
@@ -180,12 +180,12 @@ def d_get_wikipedia_page(page:str) -> str:
             response = _request(page)
         page = next(iter(response['query']['pages'].values()))
         wikicode = page['revisions'][0]['*']
-        parsed_wikicode = mwparserfromhell.parse(wikicode)
-        return {'wikipedia_text':parsed_wikicode.strip_code()}
+        parsewikicode = mwparserfromhell.parse(wikicode)
+        return {'wikipedia_text':parsewikicode.strip_code()}
     except Exception as e:
         raise Exception(f"Error while getting the wikipedia page")
 
-def d_apply_natural_language_task(content: str, task: str) -> str:
+def apply_natural_language_task(content: str, task: str) -> str:
     """
     Transforms textual content based on the specified task.
     This function takes textual content and a specified transformation task as input, and performds the
@@ -213,9 +213,9 @@ def d_apply_natural_language_task(content: str, task: str) -> str:
 
     output = res.choices[0].message.content
 
-    return {'transformed_textual_content':output}
+    return {'transformetextual_content':output}
 
-def d_upload_to_medium(content:str, title:str) -> dict:
+def uploato_medium(content:str, title:str) -> dict:
     """uploads a blog post to medium
 
     :param content: content of the blog post
@@ -242,7 +242,7 @@ def d_upload_to_medium(content:str, title:str) -> dict:
     return exemplaric_response
 
 TYPE = Literal['52week', 'revenue', 'all_metrics']
-def d_get_basic_financials(name:str, type:TYPE='all_metric') -> dict:
+def get_basic_financials(name:str, type:TYPE='all_metric') -> dict:
     """Get company basic financials such as margin, P/E ratio, 52-week high/low etc.
 
     :param name: the name of the company to search for
@@ -268,7 +268,7 @@ def d_get_basic_financials(name:str, type:TYPE='all_metric') -> dict:
     else:
         return response
 
-def d_create_image_from_text(description:str) -> str:
+def create_image_from_text(description:str) -> str:
     """creates any desired image from a text description
 
     :param description: the description/prompt of the image to create
@@ -291,7 +291,7 @@ def d_create_image_from_text(description:str) -> str:
         path_name = temp.name
         return {'path_name': path_name}
 
-def d_store_image_to_disk(path_name:str, filename:str="output") -> None:
+def store_image_to_disk(path_name:str, filename:str="output") -> None:
     """stores the image to disk
 
     :param path_name: path to the temporary file
@@ -299,7 +299,7 @@ def d_store_image_to_disk(path_name:str, filename:str="output") -> None:
     """
     shutil.copy(path_name, f'output/{filename}.jpg')
 
-def d_transform_text_to_speech(text: str, lang: str='en') -> str:
+def transform_text_to_speech(text: str, lang: str='en') -> str:
     """transforms amy desired text to speech
 
     :param text: text to convert to speech
@@ -312,7 +312,7 @@ def d_transform_text_to_speech(text: str, lang: str='en') -> str:
         path_name = temp.name
         return {'path_name': path_name}
 
-def d_store_speech_to_disk(path_name:str, filename:str='output') -> None:
+def store_speech_to_disk(path_name:str, filename:str='output') -> None:
     """stores the speech to disk
 
     :param path_name: path to the temporary file
@@ -321,7 +321,7 @@ def d_store_speech_to_disk(path_name:str, filename:str='output') -> None:
     shutil.copy(path_name, f'output/{filename}.mp3')
 
 
-def d_get_dhl_tracking_history(id:str) -> dict:
+def get_dhl_tracking_history(id:str) -> dict:
     """get the tracking history of a shipment from DHL
 
     :param id: the tracking number of the shipment
@@ -385,7 +385,7 @@ def d_get_dhl_tracking_history(id:str) -> dict:
     }
     return tracking_history
 
-def d_get_banking_account_summary(user_id:int) -> dict:
+def get_banking_account_summary(user_id:int) -> dict:
     """Get the banking account summary of a user inlcuding the balance and the last 10 transactions
 
     :param user_id: the id of the user
@@ -469,7 +469,7 @@ def _get_google_oauth_credentials() -> Credentials:
     credentials = None
     
     if os.path.exists('config/token.json'):
-        credentials = Credentials.from_authorized_user_file('config/token.json', SCOPES)
+        credentials = Credentials.from_authorizeuser_file('config/token.json', SCOPES)
 
     if not credentials or not credentials.valid:
         if credentials and credentials.expired and credentials.refresh_token:
@@ -482,7 +482,7 @@ def _get_google_oauth_credentials() -> Credentials:
 
     return credentials
 
-def d_send_email_to(recipient: str, content: str, subject: str, file:str=None):
+def senemail_to(recipient: str, content: str, subject: str, file:str=None):
     """sends an email to a given recipient. Optionally, a file can be attached to the email.
 
     :param recipient: email address of the recipient
@@ -517,26 +517,26 @@ def d_send_email_to(recipient: str, content: str, subject: str, file:str=None):
             msg.set_payload(fp.read())
             fp.close()
             encoders.encode_base64(msg)    
-        msg.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file))
+        msg.adheader('Content-Disposition', 'attachment', filename=os.path.basename(file))
         message.attach(msg)
 
     raw_string = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
     create_message = {'raw': raw_string}
 
-    send_message = (
+    senmessage = (
             service.users()
             .messages()
             .send(userId="me", body=create_message)
             .execute()
         )
     
-    if 'id' in send_message:
+    if 'id' in senmessage:
         return {"status": "Successfully sent email"}
     else:
         return {"status": "Failed to send email"}
     
-def d_get_google_document(document_id:str) -> dict[str, str]:
+def get_google_document(document_id:str) -> dict[str, str]:
     """get the text content of a google document
 
     :param document_id: document id of the google document
@@ -558,7 +558,7 @@ def d_get_google_document(document_id:str) -> dict[str, str]:
 
     return {'google_document_text':text}
 
-def d_create_google_document(title:str) -> dict[str, str]:
+def create_google_document(title:str) -> dict[str, str]:
     """create a new google document
 
     :param title: the title of the new document
@@ -575,7 +575,7 @@ def d_create_google_document(title:str) -> dict[str, str]:
     return {'google_document_id':document_id}
 
 
-def d_update_google_document(text:str, document_id:str):
+def update_google_document(text:str, document_id:str):
     """update the text content of a google document.
     The text will be appended to the end of the document.
 
@@ -588,13 +588,13 @@ def d_update_google_document(text:str, document_id:str):
     document = service.documents().get(documentId=document_id).execute()
     content = document.get('body').get('content')
     last_element = content[-1]
-    end_index = last_element.get('endIndex')
+    enindex = last_element.get('endIndex')
 
     requests = [
         {
             'insertText': {
                 'location': {
-                    'index': end_index-1,
+                    'index': enindex-1,
                 },
                 'text': text
             }
@@ -604,7 +604,7 @@ def d_update_google_document(text:str, document_id:str):
 
     document = service.documents().batchUpdate(documentId=document_id, body=body).execute()
 
-def d_get_latest_email() -> dict[str, str]:
+def get_latest_email() -> dict[str, str]:
     """get the latest email from Google Mail
 
     :return: a dictionary containing the email subject,
@@ -648,7 +648,7 @@ def d_get_latest_email() -> dict[str, str]:
         'text': email_text
     }
     
-def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Sheet1') -> dict:
+def get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Sheet1') -> dict:
     """
 
     :param spreadsheet_id: _description_
@@ -666,7 +666,7 @@ def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Sheet
 
     return values
 
-def d_append_values_to_google_sheet(spreadsheet_id:str, values:list[list[str]], range_name:str='Sheet1'):
+def appenvalues_to_google_sheet(spreadsheet_id:str, values:list[list[str]], range_name:str='Sheet1'):
     """
     
     :param spreadsheet_id: _description_
@@ -690,7 +690,7 @@ def d_append_values_to_google_sheet(spreadsheet_id:str, values:list[list[str]], 
         body=body
     ).execute()
 
-def d_create_new_google_sheet(title:str) -> dict[str, str]:
+def create_new_google_sheet(title:str) -> dict[str, str]:
     """Create a new google sheet spreadsheet
 
     :param title: title of the new spreadsheet
@@ -710,7 +710,7 @@ def d_create_new_google_sheet(title:str) -> dict[str, str]:
     return {"spreadsheet_id": f"{spreadsheet.get('spreadsheetId')}"}
 
 from typing import List
-def d_append_values_to_google_sheet(spreadsheet_id:str, values:List[List[str]]):
+def appenvalues_to_google_sheet(spreadsheet_id:str, values:List[List[str]]):
     """Append values to a google sheet
     
     :param spreadsheet_id: ID of the google sheet
@@ -734,7 +734,7 @@ def d_append_values_to_google_sheet(spreadsheet_id:str, values:List[List[str]]):
         body=body
     ).execute()
 
-def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Tabellenblatt1') -> dict:
+def get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Tabellenblatt1') -> dict:
     """
     :param spreadsheet_id: id of the google sheet
     :param range_noation: range of values to be retrieved in A1 notation
@@ -751,18 +751,18 @@ def d_get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Tabel
 
     return values
 
-def d_create_event_in_calender(start_datetime:str, end_datetime:str, summary:str):
+def create_event_in_calender(start_datetime:str, endatetime:str, summary:str):
     """creates an event in a google calendar
 
     :param start_datetime: the start time of the event in RFC3339 format
-    :param end_datetime: end time of the event in RFC3339 format
+    :param endatetime: end time of the event in RFC3339 format
     :param summary: _description of the event
     :param calendar_id: the id of the calendar to create the event in
     """
 
     event = {
         "end": {
-            "dateTime": end_datetime
+            "dateTime": endatetime
         },
         "start": {
             "dateTime": start_datetime

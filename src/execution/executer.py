@@ -21,12 +21,12 @@ Edge: TypeAlias = BPMN.Flow
 # TODO: Check and probably change the use of output and output_storage
     
 class WorkflowExecutor():
-    def __init__(self, textual_workflow: str, process_modell: WorkflowProcessor):
+    def __init__(self, textual_workflow: str, workflow_processor: WorkflowProcessor):
         self.repository = Repository()
         self.textual_workflow = textual_workflow
         self.logs = ""
         self.output_storage = []
-        self.process_modell = process_modell 
+        self.workflow_processor = workflow_processor 
         self.selector = FunctionSelector(self.repository)
         self.assignator = ParameterAssignator(self.repository)
         self.llm_connection = OpenAIConnection()
@@ -45,7 +45,7 @@ class WorkflowExecutor():
         DICT_PATTERN = r"{(.*?)}"
         ERROR_PATTERN = r"Condition error"
 
-        target_nodes = self.process_modell.get_target_nodes(gateway)
+        target_nodes = self.workflow_processor.get_target_nodes(gateway)
         # Create a dictionary with the node as key and the condition as value
         node_2_condition = {n[0]: n[1] for n in target_nodes}
         # Create a dictionary with the condition as key and the node as value
@@ -116,7 +116,7 @@ class WorkflowExecutor():
         # add output to global output storage
         self.output_storage.append({interface: output})
         # Get the target node of the task
-        target_node = self.process_modell.get_target_node(task)
+        target_node = self.workflow_processor.get_target_node(task)
         return (target_node, output)
     
     def _iterate_workflow(self, current_node:Node, output:str) -> None:
@@ -126,17 +126,17 @@ class WorkflowExecutor():
         :param output: output of the previous task
         """
         while True:
-            if self.process_modell.is_start_event(current_node):
+            if self.workflow_processor.is_start_event(current_node):
                 self._provide_logging("Process execution started")
-                current_node = self.process_modell.get_target_node(current_node)
-            elif self.process_modell.is_task(current_node):
+                current_node = self.workflow_processor.get_target_node(current_node)
+            elif self.workflow_processor.is_task(current_node):
                 self._provide_logging(f"Execution of task: {current_node.get_name()}")
                 current_node, output = self._execute_task(current_node, output)
-            elif self.process_modell.is_exclusive_gateway(current_node):
+            elif self.workflow_processor.is_exclusive_gateway(current_node):
                 self._provide_logging(f"Execution of exclusive gateway: {current_node.get_name()}")
                 current_node = self._execute_exlusive_gateway(current_node, output)
-            elif self.process_modell.is_parallel_gateway(current_node):
-                target_nodes = self.process_modell.get_target_nodes(current_node)
+            elif self.workflow_processor.is_parallel_gateway(current_node):
+                target_nodes = self.workflow_processor.get_target_nodes(current_node)
                 target_nodes = [n[0] for n in target_nodes]
                 self._provide_logging("Parallelity started")
                 # Iterate through the target nodes of the parallel gateway
@@ -145,19 +145,19 @@ class WorkflowExecutor():
                     self._iterate_workflow(node, output)
                 self._provide_logging("Parallelity ended")
                 break
-            elif self.process_modell.is_end_event(current_node):
+            elif self.workflow_processor.is_end_event(current_node):
                 self._provide_logging("Process execution ended")
                 break
 
     def _provide_logging(self, text:str) -> None:
-        self.logs += text + "\n"
+        self.logs += f"{text}\n"
         print(text)
 
     def run(self) -> None:
         """Start the execution of the workflow
         """
         # Get start event to start the process      
-        current_node = self.process_modell.get_start_node()
+        current_node = self.workflow_processor.get_start_node()
         # Start event doesnt possess any output
         output = ""
         self._iterate_workflow(current_node, output)

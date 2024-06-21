@@ -12,16 +12,17 @@ sys.path.append(parent_dir)
 from src.execution.executer import WorkflowExecutor
 from src.modelling.workflow_generation import generate_workflow 
 
-def render_pdf(current_time, name, workflow, process_text, process_image, execution_text, folder_path):
+def render_pdf(current_time, name, workflow, workflow_str, workflow_image, execution_text, folder_path, iterations):
    env = Environment(loader=FileSystemLoader('.'))
    template = env.get_template("test/test_template.html")
    rendered_template = template.render(
       current_time=current_time,
       name=name,
       workflow=workflow,
-      process_text=process_text.replace('\n', '<br>'),
-      process_image=process_image+'.png',
-      execution_text=execution_text
+      process_text=workflow_str.replace('\n', '<br>'),
+      process_image=workflow_image+'.png',
+      execution_text=execution_text.replace('\n', '<br>'),
+      iterations=iterations
    )
    pdf = open(f'{folder_path}/{name}.pdf', 'w+b')
    pisa_status = pisa.CreatePDF(rendered_template, dest=pdf)
@@ -29,8 +30,8 @@ def render_pdf(current_time, name, workflow, process_text, process_image, execut
    pisa_status.err
 
    try:
-      os.remove(process_image)
-      os.remove(process_image + '.png')
+      os.remove(workflow_image)
+      os.remove(workflow_image + '.png')
    except:
       pass
 
@@ -44,23 +45,23 @@ if __name__ == '__main__':
 
    for index, row in workflows.iterrows():
       content = row['content']
-      process_text = ''
-      process_image = ''
-      execution_text = ''
+      workflow_str = ''
+      workflow_image = ''
+      execution_log = ''
       try:
-         process = generate_workflow(content, 10)
-         process_text = process.__str__()
-         process_gviz = process.get_bpmn()
-         process_image = f'{folder_path}/{index}'
-         process_gviz.render(process_image, format='png')
+         workflow, iterations = generate_workflow(content, 10)
+         workflow_str = workflow.__str__()
+         worklfow_gviz = workflow.get_bpmn()
+         workflow_image = f'{folder_path}/{index}'
+         worklfow_gviz.render(workflow_image, format='png')
          try:
-            executer = WorkflowExecutor(content, process)
+            executer = WorkflowExecutor(content, workflow)
             executer.run()
-            execution_text = executer.logs
-            render_pdf(current_time, index, content, process_text, process_image, execution_text, folder_path)
+            execution_log = executer.get_log()
+            render_pdf(current_time, index, content, workflow_str, workflow_image, execution_log, folder_path, iterations)
          except Exception as e:
             error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
-            render_pdf(current_time, index, content, process_text, process_image, error, folder_path)
+            render_pdf(current_time, index, content, workflow_str, workflow_image, error, folder_path, iterations)
       except Exception as e:
          error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
-         render_pdf(current_time, index, content, error, process_image, execution_text, folder_path)
+         render_pdf(current_time, index, content, error, workflow_image, execution_log, folder_path, iterations)

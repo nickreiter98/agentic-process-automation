@@ -32,7 +32,7 @@ def generate_workflow(textual_workflow: str, max_iteration: int = 5) -> str:
             print("Model generation successful")
             # Extract the WorkflowProcessor object from the local variables
             workflow_processor = local_vars["model"]
-            return workflow_processor
+            return (workflow_processor, i+1)
         except Exception as error:
             error_description = str(error)
             new_message = f"Executing your code led to the error {error_description}"

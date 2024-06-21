@@ -10,13 +10,14 @@
 
     <h1>Test Run {{ current_time }}</h1>
     <h2><b>ID:</b> {{ name }}</h2>
-    <p><b>Textual Process Description:</b> {{ workflow }}</p>
+    <p><b>Textual Workflow Description:</b> {{ workflow }}</p>
 
-    <h3>Process Representation in BPMN and Text</h3>
-    <img src="{{ process_image }}" alt="The process representatin of the workflow">
+    <h3>Workflow Representation in BPMN and Text</h3>
+    <p><b>Required iterations: {{ iterations }}</b></p>
+    <img src="{{ process_image }}" alt="The BPMN Representation of the workflow">
     <p>{{ process_text }}</p>
 
-    <h3>Execution of the Process in Text</h3>
+    <h3>Execution of the Workflow in Text</h3>
     <p>{{ execution_text }}</p>
 
 </body>

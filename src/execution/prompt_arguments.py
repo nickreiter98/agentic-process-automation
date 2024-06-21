@@ -106,11 +106,11 @@ def get_sys_message():
 from typing import List
 
 
-def get_prompt(function: dict, workflow: str, output_storage: List[str]):
+def get_prompt(function: dict, textual_workflow: str, output_storage: List[str]):
     prompt = (
         f"Assign the parameter of provided function with arguments.\n"
         f"- Head of the function arguments has to be assigned: {str(function)}\n"
         f"- {add_output_storage(output_storage)}"
-        f"- Workflow description: {workflow}\n\n"
+        f"- Workflow description: {textual_workflow}\n\n"
     )
     return prompt

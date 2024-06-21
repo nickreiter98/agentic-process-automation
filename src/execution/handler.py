@@ -62,9 +62,10 @@ class FunctionSelector:
             # Load the interface as a dictionary
             interface = json.loads(match)
             # Check if only one interface was selected
-            if len(interface) == 1:
+            if len(interface) != 1:
                 raise Exception(
-                "Multiple interfaces selected - Only one interface can be selected"
+                f"Multiple interfaces selected for '{task.name}' "
+                f"- Only one interface can be selected"
                 )
             clear_name = list(interface.values())[0]
             return clear_name

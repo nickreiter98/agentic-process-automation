@@ -12,7 +12,7 @@ import mimetypes
 import shutil
 import random
 
-from dotenv import loadotenv
+from dotenv import load_dotenv
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -28,7 +28,7 @@ from typing import Literal
 from PIL import Image
 from gtts import gTTS
 
-loadotenv('.env')
+load_dotenv('.env')
 
 ############ START GENERAL FUNCTIONS ############
 def _store_tempfile(data: object) -> dict:
@@ -42,7 +42,7 @@ def _store_tempfile(data: object) -> dict:
         return {'path_name': temp.name}
     
 
-def _loatempfile(path: str) -> object:
+def _load_tempfile(path: str) -> object:
     """loads a temporary file with the data
 
     :param path: path to the temporary file
@@ -180,8 +180,8 @@ def get_wikipedia_page(page:str) -> str:
             response = _request(page)
         page = next(iter(response['query']['pages'].values()))
         wikicode = page['revisions'][0]['*']
-        parsewikicode = mwparserfromhell.parse(wikicode)
-        return {'wikipedia_text':parsewikicode.strip_code()}
+        parsed_wikicode = mwparserfromhell.parse(wikicode)
+        return {'wikipedia_text':parsed_wikicode.strip_code()}
     except Exception as e:
         raise Exception(f"Error while getting the wikipedia page")
 
@@ -213,9 +213,9 @@ def apply_natural_language_task(content: str, task: str) -> str:
 
     output = res.choices[0].message.content
 
-    return {'transformetextual_content':output}
+    return {'transformd_etextual_content':output}
 
-def uploato_medium(content:str, title:str) -> dict:
+def upload_to_medium(content:str, title:str) -> dict:
     """uploads a blog post to medium
 
     :param content: content of the blog post
@@ -469,7 +469,7 @@ def _get_google_oauth_credentials() -> Credentials:
     credentials = None
     
     if os.path.exists('config/token.json'):
-        credentials = Credentials.from_authorizeuser_file('config/token.json', SCOPES)
+        credentials = Credentials.from_authorized_user_file('config/token.json', SCOPES)
 
     if not credentials or not credentials.valid:
         if credentials and credentials.expired and credentials.refresh_token:
@@ -482,7 +482,7 @@ def _get_google_oauth_credentials() -> Credentials:
 
     return credentials
 
-def senemail_to(recipient: str, content: str, subject: str, file:str=None):
+def send_email_to(recipient: str, content: str, subject: str, file:str=None):
     """sends an email to a given recipient. Optionally, a file can be attached to the email.
 
     :param recipient: email address of the recipient
@@ -517,14 +517,14 @@ def senemail_to(recipient: str, content: str, subject: str, file:str=None):
             msg.set_payload(fp.read())
             fp.close()
             encoders.encode_base64(msg)    
-        msg.adheader('Content-Disposition', 'attachment', filename=os.path.basename(file))
+        msg.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file))
         message.attach(msg)
 
     raw_string = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
     create_message = {'raw': raw_string}
 
-    senmessage = (
+    send_message = (
             service.users()
             .messages()
             .send(userId="me", body=create_message)
@@ -588,13 +588,13 @@ def update_google_document(text:str, document_id:str):
     document = service.documents().get(documentId=document_id).execute()
     content = document.get('body').get('content')
     last_element = content[-1]
-    enindex = last_element.get('endIndex')
+    end_index = last_element.get('endIndex')
 
     requests = [
         {
             'insertText': {
                 'location': {
-                    'index': enindex-1,
+                    'index': end_index-1,
                 },
                 'text': text
             }
@@ -666,7 +666,7 @@ def get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Sheet1'
 
     return values
 
-def appenvalues_to_google_sheet(spreadsheet_id:str, values:list[list[str]], range_name:str='Sheet1'):
+def append_values_to_google_sheet(spreadsheet_id:str, values:list[list[str]], range_name:str='Sheet1'):
     """
     
     :param spreadsheet_id: _description_
@@ -710,7 +710,7 @@ def create_new_google_sheet(title:str) -> dict[str, str]:
     return {"spreadsheet_id": f"{spreadsheet.get('spreadsheetId')}"}
 
 from typing import List
-def appenvalues_to_google_sheet(spreadsheet_id:str, values:List[List[str]]):
+def append_values_to_google_sheet(spreadsheet_id:str, values:List[List[str]]):
     """Append values to a google sheet
     
     :param spreadsheet_id: ID of the google sheet
@@ -751,18 +751,18 @@ def get_values_from_google_sheet(spreadsheet_id:str, range_notation:str='Tabelle
 
     return values
 
-def create_event_in_calender(start_datetime:str, endatetime:str, summary:str):
+def create_event_in_calender(start_datetime:str, end_datetime:str, summary:str):
     """creates an event in a google calendar
 
     :param start_datetime: the start time of the event in RFC3339 format
-    :param endatetime: end time of the event in RFC3339 format
+    :param end_datetime: end time of the event in RFC3339 format
     :param summary: _description of the event
     :param calendar_id: the id of the calendar to create the event in
     """
 
     event = {
         "end": {
-            "dateTime": endatetime
+            "dateTime": end_datetime
         },
         "start": {
             "dateTime": start_datetime

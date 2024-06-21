@@ -11,14 +11,13 @@ class Repository:
         self.interfaces: List[Callable] = self._get_all_interfaces()
         assert self.interfaces is not None
 
-    def _get_all_interfaces() -> List[Callable]:
+    def _get_all_interfaces(self) -> List[Callable]:
         """retrieve all interfaces from the interfaces module
 
         :return: list of iterface functions
         """
         functions = []
         for name, obj in inspect.getmembers(interfaces):
-            print(name)
             if (
                 inspect.isfunction(obj)
                 and obj.__module__ == interfaces.__name__

@@ -73,9 +73,10 @@ class WorkflowExecutor():
             # Convert the condition to a dictionary
             target_condition = json.loads(match)
             # Check if only one condition is selected
-            if len(target_condition) == 1:
+            if len(target_condition) != 1:
                 raise Exception(
-                    "Multiple conditions selected - Only one condition can be selected"
+                    f"Multiple conditions selected '{gateway.name}' "
+                    f"- Only one condition can be selected"
                 )
             # Get the selected condition
             target_condition = str(list(target_condition.values())[0])
@@ -97,7 +98,7 @@ class WorkflowExecutor():
         :return: target node of the task and the output of the task
         """
         # Select the interface which corresponds to the task
-        interface = self.selector.select(task, self.textual_workflow)
+        interface = self.selector.select(task)
         # Assign the parameters of the interface
         arguments = self.assignator.assign(
             interface,

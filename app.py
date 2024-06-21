@@ -17,7 +17,7 @@ if __name__ == '__main__':
          print(Fore.RED + 'Enter your Textual Workflow to be modelled and excecuted:' + Style.RESET_ALL)
          workflow = input(Fore.GREEN + 'Workflow: ' + Style.RESET_ALL)
 
-         process = generate_workflow(workflow, 10)
+         process, _ = generate_workflow(workflow, 10)
          
          print(process.__str__())
 

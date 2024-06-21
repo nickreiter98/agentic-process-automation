@@ -11,7 +11,7 @@ def run_model_generator_app():
     subprocess.run(['streamlit', 'run', __file__])
 
 def _modell(workflow:str):
-    process = generate_workflow(workflow)
+    process, _ = generate_workflow(workflow)
     return process
 
 def _execute(process, workflow):

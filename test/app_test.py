@@ -40,37 +40,44 @@ def render_pdf(current_time, name, workflow, workflow_str, workflow_image, execu
 if __name__ == '__main__':
    current_time = datetime.today().strftime('%Y_%m_%d-%H:%M:%S')
    # If the folder does not exist, create it
-   if not os.path.exists(f'test/{current_time}'):
-      os.makedirs(f'test/{current_time}')
-   folder_path = f'test/{current_time}'
+   glob_folder_path = f'test/{current_time}'
+   if not os.path.exists(glob_folder_path):
+      os.makedirs(glob_folder_path)
 
-   workflows = pd.read_csv('test/workflow_descriptions.csv', index_col=0)
+   names = ["bullet_points", "normal", "difficult_context"]
+   workflows = []
+   for name in names:
+      workflows.append(pd.read_csv(f'test/workflow_descriptions_{name}.csv', index_col=0))
 
    # Iterate over the workflows
-   for index, row in workflows.iterrows():
-      content = row['content']
-      workflow_str = ''
-      workflow_image = ''
-      execution_log = ''
-      try:
-         # Generate the workflow
-         workflow_processor, iterations = generate_workflow(content, 10)
-         workflow_str = workflow_processor.__str__()
-         worklfow_gviz = workflow_processor.get_bpmn()
-         workflow_image = f'{folder_path}/{index}'
-         worklfow_gviz.render(workflow_image, format='png')
+   for i, workflow in enumerate(workflows):
+      folder_path = f'{glob_folder_path}/{names[i]}'
+      if not os.path.exists(folder_path):
+         os.makedirs(folder_path)
+      for index, row in workflow.iterrows():
+         content = row['content']
+         workflow_str = ''
+         workflow_image = ''
+         execution_log = ''
          try:
-            # Execute the workflow
-            executor = WorkflowExecutor(content, workflow_processor)
-            executor.run()
-            execution_log = executor.get_log()
-            render_pdf(current_time, index, content, workflow_str, workflow_image, execution_log, folder_path, iterations)
-         # If an error occurs during the execution, render the pdf with the error
-         except Exception as e:
+            # Generate the workflow
+            workflow_processor, iterations = generate_workflow(content, 10)
+            workflow_str = workflow_processor.__str__()
+            worklfow_gviz = workflow_processor.get_bpmn()
+            workflow_image = f'{folder_path}/{index}'
+            worklfow_gviz.render(workflow_image, format='png')
+            try:
+               # Execute the workflow
+               executor = WorkflowExecutor(content, workflow_processor)
+               executor.run()
+               execution_log = executor.get_log()
+               render_pdf(current_time, index, content, workflow_str, workflow_image, execution_log, folder_path, iterations)
+            # If an error occurs during the execution, render the pdf with the error
+            except (Exception, RuntimeError) as e:
+               error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
+               render_pdf(current_time, index, content, workflow_str, workflow_image, error, folder_path, iterations)
+         # If an error occurs during the generation, render the pdf with the error
+         except (Exception, RuntimeError) as e:
             error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
-            render_pdf(current_time, index, content, workflow_str, workflow_image, error, folder_path, iterations)
-      # If an error occurs during the generation, render the pdf with the error
-      except Exception as e:
-         error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
-         render_pdf(current_time, index, content, error, workflow_image, execution_log, folder_path, iterations)
-      print("++++++++++++++++++")
+            render_pdf(current_time, index, content, error, workflow_image, execution_log, folder_path, iterations)
+         print("++++++++++++++++++")

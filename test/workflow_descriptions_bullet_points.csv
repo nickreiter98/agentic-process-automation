@@ -1,0 +1,106 @@
+name,Notes,content
+boss ,Works,"- Write a text in which you thank your coworker Martina for her great work in Statistics
+- Send text to the email nick.reiter@hotmail.de
+- Exclusive: Is email sent email
+   → Condition 1: email is sent
+   - Store the text locally on your PC as ‘thanks’
+   → Condition 1:email is not sent successfully
+   - End the process"
+weather_love_poem,Works,"- Get the weather data about Berlin
+- Exclusive: Is weather warmer than 10 Celsius
+   → Condition 1: Weather is warmer than 10 Ceslius
+   - Write a love poem about the current weather
+   → Condition 2: If colder
+   - Write a negative review about Berlin
+   - In both cases store the text in a file wit the name “yippiii_berlin”"
+bank_statement,Works,"- Get the bank statement of the user with the id 2554727
+- Exclusive: User has more than 1000 Euros in his account
+   → Condition 1: Has more than 1000 Euros
+   - Write a text that user has enough assets 
+   - Send it to their email address
+   → Condition 2: Has less than 1000 Euros
+   - Write a text that user does not posses assets
+   - Send it to their email address."
+weather_statement,Complex workflow – might not always detect the right process modell,"- Get the weather data about berlin
+Parallel
+- Write with the weather data a love poem and a negative review about Berlin
+- Store the love poem and the review in a file
+- Also send them to nick.reiter@hotmail.de"
+ticketing,Shows the limitation of model – analyze report cannot be linged with d_apply_natural_language_task,"- Get the last email from my email box
+- Exclusive: Is email send within an enterprise
+   → Condition 1:Is sent within enterprise 
+    - Forward the email to nick.retier@hotmail.de
+   → Condition 2: Else
+   - End the process."
+wikipedia,Argument assignation might work better,"- Read the Wikipedia page of Technical University of Berlin
+- Summarize it
+Parallel
+- Then upload it to Medium and also send it to the email address nick.reiter@hotmail.de"
+dhl,Works – really nice example,"- Get the status of a DHL parcel with the tracking number 123456789
+- Exclusive: Status of parcel
+   → Condition 1: Parcel is delivered 
+   - Notify the email nick.reiter@hotmail de via email. 
+   → Condition 2: Is in process of being delivered
+   - notify my boss max.mustermann@web.de
+- Independently of the status, summarize the tracking history"
+loan_application,Works,"- Retrieve the credit score details of the user with the ID 12547732
+- Exclusive: User’s credit score
+   → Condition 1: Credit score is above 700
+   - Create a message including that the credit is approved
+   → Condition 2: If the credit score is between 400 and 699
+   - Write a message including a request for providing further financial documents
+   → Condition 3: If lower than 400
+   - Write a message to not approve the credit request
+- Send the drafted messages via email to the client"
+bank_check,Modelling is working but maps an exclusive gateway as task,"- Get the bank statement summary of user 123456
+- Sequential:
+   → Parallelity 1:
+   - Exclusive: User already had financial issues
+      → Condition 1: Had financial issues
+      - Write a warning message
+      - send them an email
+     → Condition 2: Had not financial issues
+      - write them an email to be happy
+   → Parallelity 2:
+   - Summarize the last 10 transactions
+   - Store text locally"
+translation ,"From get article to summarize, the text is already summarized → should not be like this","- Get the article about Waldkirch from Wikipedia
+- Summarize it 
+- Translate into Bulgarian
+- Send it to nick.reiter@hotmail.de"
+analyze_context_spam,Could not detect ‘check whether spam’,"- Read my last email
+- Exclusive: email is spam
+   →  Condition 1: Yes
+   - End the process
+   → Condition 2: No
+   - Forward the email to nick.reiter@hotmail.de"
+creative,Modelling is not working properly,"- Write a creative text about Larry the locust swimming in the ocean
+- Sequential
+   → Parallelity 1:
+   - Send the text to the email nick.reiter@hotmail.de
+   → Parallelity 2:
+   - Transform the text into a voice message
+   - Send it as a appendix to nick.reiter@hotmail.de
+   → Parallelity 3: 
+   - Transform the text into a picture
+   - Send it as a appendix to nick.reiter@hotmail.de "
+google_sheet,Modelling is not working properly,"- Read the Google Doc with the id 1DM-zRSf9MO8wYOhIlSY-UN7JDYP43Lw_KzdSBlgGbpw
+- Exclusive: is a spreadsheet assumed to be owned by a private person or corporate
+   → Condition 1: Private person
+   - Summarize the spreadsheet 
+   - Send summary to nick.reiter@hotmail.de
+   → Condition 2: Corporate
+   - Store locally with the name “google_sheet_summary”"
+email_response,After condition no end node can be placed. Activity to conditional is not yet appropriately linked,"- Get the last email from my email box
+- Exclusive: Must email be answered
+   → Condition 1: Must be ansered
+    - Generate an automatic answer
+    - Sequential
+      → Parallelity 1
+       - Send answer via email to nick.reiter@hotmail.de
+      → Parallelity 2
+       - store the answer on my local pc.
+  → Condition 2: Must not be answered 
+   - Create a new google doc with the email as content"
+create_calender_event,Works,"- Read the Google Doc with the id ""1TT0VkjE69_sgEL2Zse65Mw_OCnoHy6dStz8QUq2O6mE""
+- Create an event from the text in my calender "

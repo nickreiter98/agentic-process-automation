@@ -1,0 +1,26 @@
+name,Notes,content
+boss ,Works,"Craft a message acknowledging Martina's exceptional contributions to the realm of data analysis. This message should be dispatched to nick.reiter@hotmail.de. In the event of a transmission failure, save the message on the local machine under the name 'thanks' and terminate the procedure if unsuccessful."
+weather_love_poem,Works,"Retrieve meteorological information for Berlin. Should the temperature exceed 10°C, compose a romantic poem celebrating the present climate. If the temperature falls below this threshold, draft a critical review of Berlin. Save the resulting text in a document titled ""yippiii_berlin""."
+bank_statement,Works,"Fetch the financial statement for the user identified by 2554727. If the account balance exceeds 1000 Euros, draft a message confirming sufficient assets and dispatch it to the user's email address. Conversely, if the balance is below 1000 Euros, create a message indicating insufficient assets and send it via email."
+weather_statement,Complex workflow – might not always detect the right process modell,"Retrieve the meteorological information for Berlin. Based on this data, compose both a romantic poem celebrating the weather and a critical review of Berlin. Store both the poem and the review in a file. Additionally, send the contents to nick.reiter@hotmail.de."
+ticketing,Shows the limitation of model – analyze report cannot be linged with d_apply_natural_language_task,"Retrieve the most recent email from the inbox. Categorize the email content. If the category is related to business or enterprise, forward the email to nick.retier@hotmail.de. Otherwise, terminate the process."
+wikipedia,Argument assignation might work better,"Read and summarize the Wikipedia page for the Technical University of Berlin. Then, publish the summary on Medium and send it to nick.reiter@hotmail.de."
+dhl,Works – really nice example,"Retrieve the current status of a DHL shipment using tracking number 123456789. If the package has been successfully delivered, send an email notification to nick.reiter@hotmail.de. In the event that the package is still en route, send a notification to my supervisor Max Mustermann at max.mustermann@web.de. Additionally, provide a concise summary of the parcel's tracking history regardless of its current status."
+loan_application,Works,"Access the credit score information for the user identified by the specified ID. Depending on the credit score:
+If the score is above 700, compose an email confirming approval of the credit.
+If the score is between 400 and 699, request additional financial documents in the email.
+If the score is below 400, inform the client that the credit request cannot be approved.
+Send the appropriate email based on the credit score to the client."
+bank_check,Modelling is working but maps an exclusive gateway as task,"Retrieve the bank statement summary for user 123456. Simultaneously, check the user's financial history for any previous issues. Summarize the last 10 transactions from the bank statement.
+If the user has had previous financial issues, compose a warning message and send it via email. If there are no previous issues, send an email indicating the user should be pleased.
+After summarizing the transactions, save the text locally."
+translation ,"From get article to summarize, the text is already summarized → should not be like this","Retrieve the Wikipedia article about Waldkirch. Summarize its content. Translate the summary into Bulgarian. Finally, send the translated version to nick.reiter@hotmail.de."
+analyze_context_spam,Could not detect ‘check whether spam’,"Read the most recent email. Determine if it meets the criteria for being classified as spam. If it is identified as spam, terminate the process. If it is not spam, forward the email to nick.reiter@hotmail.de."
+creative,Modelling is not working properly,"Compose a narrative featuring Larry the locust navigating through the ocean's expanse. Subsequently, transmit the text to nick.reiter@hotmail.de. Beneath, convert the text into an audio recording, and deliver it as an appendix to the same email. Lastly, render the text into a visual representation and include it also in an email."
+google_sheet,Modelling is not working properly,"Access the Google Doc identified by the ID 1DM-zRSf9MO8wYOhIlSY-UN7JDYP43Lw_KzdSBlgGbpw. Determine if it is a spreadsheet belonging to an individual or a corporation.
+If it is identified as belonging to a private person, summarize its contents and send the summary via email to nick.reiter@hotmail.de.
+If it is determined to be corporate-owned, save the spreadsheet locally with the filename ""google_sheet_summary""."
+email_response,After condition no end node can be placed. Activity to conditional is not yet appropriately linked,"Retrieve the most recent email from your inbox. Determine if a response is required.
+If a response is necessary, generate an automated reply and send it to nick.reiter@hotmail.de. Additionally, save the response locally on your PC.
+If no response is required, create a new Google Doc with the email content as its content."
+create_calender_event,Works,"Access the Google Doc identified by the ID ""1TT0VkjE69_sgEL2Zse65Mw_OCnoHy6dStz8QUq2O6mE"" and proceed to create a calendar event based on the content found within."

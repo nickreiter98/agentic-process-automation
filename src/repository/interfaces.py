@@ -60,11 +60,12 @@ def get_current_weather(city: str):
     :param city: name of the city
     :return: current weather parameters
     """
+    api_key = os.getenv('WEATHER_API_KEY')
     url = 'http://api.weatherapi.com/v1/current.json'
     req = requests.get(
         url=url,
         params={
-            'key': os.getenv('WEATHER_API_KEY'),
+            'key': api_key,
             'q': city
         }
     )
@@ -169,21 +170,24 @@ def get_wikipedia_page(page:str) -> str:
                 'titles': page,
                 'prop': 'revisions',
                 'rvprop': 'content',
-                'redirects': ''
+                'redirects': 1
             }).json()
         return response
     
     try:
         response = _request(page)
-        if response['query']['redirects'][0]['to'] :
+        try:
+            response['query']['redirects'][0]['to']
             page = response['query']['redirects'][0]['to']
             response = _request(page)
+        except Exception:
+            pass
         page = next(iter(response['query']['pages'].values()))
         wikicode = page['revisions'][0]['*']
         parsed_wikicode = mwparserfromhell.parse(wikicode)
         return {'wikipedia_text':parsed_wikicode.strip_code()}
     except Exception as e:
-        raise Exception(f"Error while getting the wikipedia page")
+        raise Exception(f"Error while getting the wikipedia page with {e}")
 
 def apply_natural_language_task(content: str, task: str) -> str:
     """
@@ -454,6 +458,41 @@ def get_banking_account_summary(user_id:int) -> dict:
     }
 
     return summary
+
+
+def get_credit_score(user_id:int) -> dict:
+    """Get the credit score of a user
+
+    :param user_id: the id of the user
+    :return: information about the credit score of the user
+    """
+    score = random.randint(300, 850)
+    credit_score = {
+        "status": "success",
+        "data": {
+            "customer_id": user_id,
+            "credit_score": {
+            "score": score,
+            "score_range": {
+                "min": 300,
+                "max": 850
+            },
+            "risk_level": "low",
+            "last_updated": "2024-07-03T10:15:30Z"
+            },
+            "customer_details": {
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john.doe@example.com"
+            }
+        },
+        "metadata": {
+            "request_id": "abc123xyz",
+            "timestamp": "2024-07-03T10:20:00Z"
+        }
+    }
+    return credit_score
+
 
 
 ############ END API FUNCTIONS ############

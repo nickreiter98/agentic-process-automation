@@ -62,7 +62,7 @@ class WorkflowExecutor():
         message = [sys_message, prompt]
         # Request the LLM to select the condition - dynamic decision making
         response = self.llm_connection.request(message)
-
+        print(response)
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
             raise Exception(
                 f"Condition error - No condition can be chosen for '{gateway.name}'"
@@ -111,7 +111,7 @@ class WorkflowExecutor():
             # Execute the interface with the arguments
             output = self.repository.retrieve_interface(interface)(**arguments)
         except Exception as e:
-            raise(f"Execution of the function failed with the error: {e}")
+            raise RuntimeError(f"Execution of the function failed with the error: {e}")
         self._provide_logging(f"Output of the function: {output}")
         # add output to global output storage
         self.output_storage.append({interface: output})

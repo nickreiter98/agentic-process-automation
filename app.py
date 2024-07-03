@@ -29,7 +29,8 @@ if __name__ == "__main__":
             executor.run()
             print(executor.get_log())
             print(Fore.GREEN + "Execution completed successfully." + Style.RESET_ALL)
-        except Exception as e:
+        except (Exception, RuntimeError) as e:
             print(e)
-            print(Fore.RED + f"An error occured. Please try again." + Style.RESET_ALL)
+            print(Fore.RED + f"Error: {e}. Please try again!." + Style.RESET_ALL)
             continue
+

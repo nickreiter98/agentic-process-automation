@@ -55,7 +55,7 @@ def run_app():
         try:
             st.session_state["model_gen"] = _modell(textual_workflow)
             st.session_state["feedback"] = []
-        except Exception as e:
+        except (Exception, RuntimeError) as e:
             st.error(body=str(e), icon="⚠️")
 
     if "model_gen" in st.session_state and st.session_state["model_gen"] is not None:

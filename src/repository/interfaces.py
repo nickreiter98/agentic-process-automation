@@ -278,6 +278,10 @@ def create_image_from_text(description:str) -> str:
     :param description: the description/prompt of the image to create
     :return: path to the temporary file
     """
+    # dalle cannot handle more than 1000 tokens
+    description = description.split(" ")
+    if len(description) > 700:
+        description = " ".join(description[:700])
     client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
     response = client.images.generate(
         model="dall-e-2",

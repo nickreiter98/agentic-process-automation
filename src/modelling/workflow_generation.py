@@ -35,8 +35,8 @@ def generate_workflow(textual_workflow: str, max_iteration: int = 5) -> str:
             workflow_processor = local_vars["model"]
             return (workflow_processor, i+1)
         # breaks the loop and raises error if workflow cannot be modelled
-        except ModellingError as error:
-            raise ModellingError()
+        except ModellingError:
+            raise ModellingError("Given textual workflow is not a business/IT process")
         # continues loop if Python code extraction error occurs or code cannot be executed
         except (PythonCodeExtractionError, Exception) as error:
             error_description = str(error)

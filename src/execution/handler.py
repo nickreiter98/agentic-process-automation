@@ -53,8 +53,7 @@ class FunctionSelector:
         # Selection lead to error
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
             raise FunctionSelectorError(
-                f"Mapping error - No interface can be mapped "
-                f"to the task '{task.name}'"
+                f"No interface can be mapped to the task '{task.name}'"
             )
         # Selection was successful
         elif re.search(DICT_PATTERN, response, re.DOTALL):
@@ -65,17 +64,13 @@ class FunctionSelector:
             # Check if only one interface was selected
             if len(interface) != 1:
                 raise FunctionSelectorError(
-                f"Multiple interfaces selected for '{task.name}' "
-                f"- Only one interface can be selected"
+                f"Multiple interfaces selected for '{task.name}'"
                 )
             clear_name = list(interface.values())[0]
             return clear_name
         # Random error
         else:
-            raise FunctionSelectorError(
-                "Neither an assignation error nor arguments could be detected "
-                "within the response. Please try again!"
-            )
+            raise FunctionSelectorError(f"Unkown error for '{task.name}'")
 
 class ParameterAssignator:
     def __init__(self, repository: Repository):
@@ -115,8 +110,7 @@ class ParameterAssignator:
         # Selection lead to error
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
             raise ParameterAssignator(
-                f"Assignation error - No parameters can be assigned"
-                f"to the interface '{interface}'"
+                f"No parameters can be assigned to the interface '{interface}'"
             )
         # Response was successful
         elif re.search(DICT_PATTERN, response, re.DOTALL):
@@ -127,7 +121,4 @@ class ParameterAssignator:
             return arguments
         # Random error
         else:
-            raise ParameterAssignatorError(
-                "Neither an assignation error nor arguments could be detected "
-                "within the response. Please try again!"
-            )
+            raise ParameterAssignatorError(f"Unkown error for '{interface}'")

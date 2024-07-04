@@ -66,7 +66,7 @@ class WorkflowExecutor():
         print(response)
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
             raise DecisionMakingError(
-                f"Condition error - No condition can be chosen for '{gateway.name}'"
+                f"No condition can be chosen for '{gateway.name}'"
             )
         elif re.search(DICT_PATTERN, response, re.DOTALL):
             # Extract the selected condition
@@ -76,7 +76,7 @@ class WorkflowExecutor():
             # Check if only one condition is selected
             if len(target_condition) != 1:
                 raise DecisionMakingError(
-                    f"Multiple conditions selected '{gateway.name}' "
+                    f"Multiple conditions selected for '{gateway.name}' "
                     f"- Only one condition can be selected"
                 )
             # Get the selected condition
@@ -86,9 +86,7 @@ class WorkflowExecutor():
             self._provide_logging(f"Condition is selected: {target_condition}")
             return target_node
         else:
-            raise DecisionMakingError(
-                "Neither an condition error nor a target node could be chosen - Please try again!"
-            )
+            raise DecisionMakingError(f"Unkown error for '{gateway.name}'")
     
     def _execute_task(self, task:Task, output:str) -> Tuple[Node, str]:
         """Execute the task. 
@@ -112,7 +110,7 @@ class WorkflowExecutor():
             # Execute the interface with the arguments
             output = self.repository.retrieve_interface(interface)(**arguments)
         except Exception as e:
-            raise FunctionError(f"Execution of the function failed with the error: {e}")
+            raise FunctionError(f"interface {interface} throws {e}")
         self._provide_logging(f"Output of the function: {output}")
         # add output to global output storage
         self.output_storage.append({interface: output})

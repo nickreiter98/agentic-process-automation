@@ -1,5 +1,7 @@
 import re
 
+from src.utils.errors import ModellingError, PythonCodeExtractionError
+
 def extract_final_python_code(response_text:str) -> str:
     """Extracts the final Python code snippet from the response text from LLM
     and returns an executable Python code snippet.
@@ -26,6 +28,12 @@ def extract_final_python_code(response_text:str) -> str:
         + re.escape(allowed_import_class)
         + r")\s*$"
     )
+    ERROR_PATTERN = r"Modelling Error"
+
+    if re.search(ERROR_PATTERN, response_text, re.IGNORECASE):
+        raise ModellingError()
+    else:
+        pass
 
     # Find Python code snippet in the response text
     matches = re.findall(python_code_pattern, response_text, re.DOTALL)
@@ -40,7 +48,7 @@ def extract_final_python_code(response_text:str) -> str:
             # Check if the import statement is comprised in the Python code snippet
             if re.match(any_import_pattern, line):
                 if not re.match(allowed_import_pattern, line):
-                    raise Exception(
+                    raise PythonCodeExtractionError(
                         f"Python snippet does not meet the import statement "
                         f"requirements! Only the following import"
                         f"statement is allowed:\n"
@@ -49,4 +57,4 @@ def extract_final_python_code(response_text:str) -> str:
         return python_snippet
     # No Python code snippet found
     else:
-        raise Exception("No Python code snippet found!")
+        raise PythonCodeExtractionError("No Python code snippet found!")

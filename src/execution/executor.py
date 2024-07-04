@@ -8,6 +8,7 @@ from src.execution.handler import FunctionSelector, ParameterAssignator
 from src.execution.prompt_exclusive_gateway import get_sys_message, get_prompt
 from src.modelling.workflow_processor import WorkflowProcessor
 from src.utils.open_ai import OpenAIConnection
+from src.utils.errors import FunctionError, DecisionMakingError
 
 from typing import Tuple, TypeAlias
 StartEvent: TypeAlias = BPMN.StartEvent
@@ -64,7 +65,7 @@ class WorkflowExecutor():
         response = self.llm_connection.request(message)
         print(response)
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
-            raise Exception(
+            raise DecisionMakingError(
                 f"Condition error - No condition can be chosen for '{gateway.name}'"
             )
         elif re.search(DICT_PATTERN, response, re.DOTALL):
@@ -74,7 +75,7 @@ class WorkflowExecutor():
             target_condition = json.loads(match)
             # Check if only one condition is selected
             if len(target_condition) != 1:
-                raise Exception(
+                raise DecisionMakingError(
                     f"Multiple conditions selected '{gateway.name}' "
                     f"- Only one condition can be selected"
                 )
@@ -85,7 +86,7 @@ class WorkflowExecutor():
             self._provide_logging(f"Condition is selected: {target_condition}")
             return target_node
         else:
-            raise Exception(
+            raise DecisionMakingError(
                 "Neither an condition error nor a target node could be chosen - Please try again!"
             )
     
@@ -111,7 +112,7 @@ class WorkflowExecutor():
             # Execute the interface with the arguments
             output = self.repository.retrieve_interface(interface)(**arguments)
         except Exception as e:
-            raise RuntimeError(f"Execution of the function failed with the error: {e}")
+            raise FunctionError(f"Execution of the function failed with the error: {e}")
         self._provide_logging(f"Output of the function: {output}")
         # add output to global output storage
         self.output_storage.append({interface: output})

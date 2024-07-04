@@ -1,6 +1,7 @@
 from src.modelling.code_extraction import extract_final_python_code
 from src.modelling import prompt_workflow
 from src.utils.open_ai import OpenAIConnection
+from src.utils.errors import ModellingError, PythonCodeExtractionError
 
 
 def generate_workflow(textual_workflow: str, max_iteration: int = 5) -> str:
@@ -33,7 +34,11 @@ def generate_workflow(textual_workflow: str, max_iteration: int = 5) -> str:
             # Extract the WorkflowProcessor object from the local variables
             workflow_processor = local_vars["model"]
             return (workflow_processor, i+1)
-        except Exception as error:
+        # breaks the loop and raises error if workflow cannot be modelled
+        except ModellingError as error:
+            raise ModellingError()
+        # continues loop if Python code extraction error occurs or code cannot be executed
+        except (PythonCodeExtractionError, Exception) as error:
             error_description = str(error)
             new_message = f"Executing your code led to the error {error_description}"
             print(new_message)

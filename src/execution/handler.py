@@ -5,6 +5,7 @@ import re
 from src.utils.open_ai import OpenAIConnection
 from src.execution import prompt_arguments, prompt_selection
 from src.repository.repository import Repository
+from src.utils.errors import FunctionSelectorError, ParameterAssignatorError
 
 from openai import OpenAI
 from pm4py.objects.bpmn.obj import BPMN
@@ -51,7 +52,7 @@ class FunctionSelector:
 
         # Selection lead to error
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
-            raise Exception(
+            raise FunctionSelectorError(
                 f"Mapping error - No interface can be mapped "
                 f"to the task '{task.name}'"
             )
@@ -63,7 +64,7 @@ class FunctionSelector:
             interface = json.loads(match)
             # Check if only one interface was selected
             if len(interface) != 1:
-                raise Exception(
+                raise FunctionSelectorError(
                 f"Multiple interfaces selected for '{task.name}' "
                 f"- Only one interface can be selected"
                 )
@@ -71,7 +72,7 @@ class FunctionSelector:
             return clear_name
         # Random error
         else:
-            raise Exception(
+            raise FunctionSelectorError(
                 "Neither an assignation error nor arguments could be detected "
                 "within the response. Please try again!"
             )
@@ -113,7 +114,7 @@ class ParameterAssignator:
 
         # Selection lead to error
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
-            raise Exception(
+            raise ParameterAssignator(
                 f"Assignation error - No parameters can be assigned"
                 f"to the interface '{interface}'"
             )
@@ -126,7 +127,7 @@ class ParameterAssignator:
             return arguments
         # Random error
         else:
-            raise Exception(
+            raise ParameterAssignatorError(
                 "Neither an assignation error nor arguments could be detected "
                 "within the response. Please try again!"
             )

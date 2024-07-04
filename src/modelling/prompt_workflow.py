@@ -112,7 +112,11 @@ def add_least_to_most():
         "Include an opposite condition directing to the end event if "
         "there's only one condition leading to a target. Ensure all events "
         "have a successor or target. Also, note that only diverging gateways "
-        "are used, no converging ones!\n\n"
+        "are used, no converging ones!\n"
+        "If the given process description cannot be modelled to a BPMN model, "
+        "or it seems that the process description is incomplete or invalid,"
+        "return an error message. Return also an error message if the process "
+        "process is clearly not linked to a economic/IT/business process"
     )
 
 def add_process_description(process_description):
@@ -133,7 +137,9 @@ def add_output_pattern():
         "snippet (i.e., starting with '```python') that contains the full "
         "final code. Keep in mind to not provide explanations or unnecessary "
         "text. Also do not indent any code snippet. The code snippet should "
-        "be executable as a script."
+        "be executable as a script.\n"
+        "If the given process description cannot be modellled to a BPMN model, "
+        "return an error message. '''Modelling Error'''\n\n"
     )
 
 def add_few_shots():

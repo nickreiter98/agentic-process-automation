@@ -127,6 +127,29 @@ def m4():
 
     model.initialize()
 
+d5 = (
+    "Get a. Check whether a is a large number. If a is larger than 25 send a message"
+    ", if not, break the process."
+)
+
+def m5():
+    model = WorkflowProcessor()
+
+    start = model.create_start_event()
+    get_a = model.create_task("get a")
+    check_a = model.create_task("check whether a is a large number")
+    send_message = model.create_task("send message")
+    end_1 = model.create_end_event()
+    end_2 = model.create_end_event()
+
+    model.create_edge(start, get_a)
+    model.create_edge(get_a, check_a)
+    model.create_exclusive_edge(check_a, send_message, "a > 25")
+    model.create_exclusive_edge(check_a, end_2, "a <= 25")
+    model.create_edge(send_message, end_1)
+
+    model.initialize()
+
 # Provide examples which would lead to errors during model generation.
 # Also provide the error explanation
 de1 = (
@@ -248,7 +271,41 @@ ee4 = (
     " exclusive gateway."
 )
 
-SHOTS = [(d1, m1), (d2, m2), (d3, m3), (d4, m4)]
+de5 = (
+    "Get the current water level of the Rhine. Check if the water how high "
+    "the water level is. If it is higher than 100cm send a message to "
+    "nick.reiter@hotmail.de. if lower than 100cm, break the process."
+)
+
+def me5():
+    model = WorkflowProcessor()
+
+    start = model.create_start_event()
+    get_water_level = model.create_task("get current water level of the Rhine")
+    check_water_level = model.create_task("check how high water level is")
+    high_water_level = model.create_exclusive_gateway("water level is high or not")
+    send_message = model.create_task("send message to nick.reiter@hotmail.de")
+    end_1 = model.create_end_event()
+    end_2 = model.create_end_event()
+
+    model.create_edge(start, get_water_level)
+    model.create_edge(get_water_level, check_water_level)
+    model.create_edge(check_water_level, high_water_level)
+    model.create_exclusive_edge(high_water_level, send_message, "water level > 100cm")
+    model.create_exclusive_edge(high_water_level, end_2, "water level <= 100cm")
+    model.create_edge(send_message, end_1)
+
+    model.initialize()
+
+ee5 = (
+    "In this process, the exclusive gateway is not used correctly "
+    "The exclusive gateway must represent the decision-making respectively "
+    "the business rule of the process. In this case the exclusive gateway "
+    "is separated in 'check how high water level is' and 'water level is high or not'. "
+    "Since both relate to decision-making, they must be combined in one exclusive gateway."
+)
+
+SHOTS = [(d1, m1), (d2, m2), (d3, m3), (d4, m4), (d5, m5)]
 SHOTS_WITH_ERRORS = [
-    (de1, me1, ee1), (de2, me2, ee2), (de3, me3, ee3), (de4, me4, ee4)
+    (de1, me1, ee1), (de2, me2, ee2), (de3, me3, ee3), (de4, me4, ee4), (de5, me5, ee5)
 ]

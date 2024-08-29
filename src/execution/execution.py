@@ -10,7 +10,7 @@ from src.modeling.process_processor import ProcessProcessor
 from src.utils.open_ai import OpenAIConnection
 from src.utils.errors import FunctionError, DecisionMakingError
 
-from typing import Tuple, TypeAlias
+from typing import Tuple, TypeAlias, List, Dict
 StartEvent: TypeAlias = BPMN.StartEvent
 EndEvent: TypeAlias = BPMN.EndEvent
 Task: TypeAlias = BPMN.Task
@@ -18,26 +18,23 @@ ExclusiveGateway: TypeAlias = BPMN.ExclusiveGateway
 ParallelGateway: TypeAlias = BPMN.ParallelGateway
 Node: TypeAlias = BPMN.BPMNNode
 Edge: TypeAlias = BPMN.Flow
-
-# TODO: Check and probably change the use of output and data_cache
     
 class ProcessExecutor():
     def __init__(self, textual_workflow: str, process_processor: ProcessProcessor):
         self.registry = Registry()
         self.textual_workflow = textual_workflow
         self.logs = ""
-        self.data_cache = []
         self.process_processor = process_processor 
         self.selector = FunctionSelector(self.registry)
         self.assignator = ParameterAssignator(self.registry)
         self.llm_connection = OpenAIConnection()
 
-    def _execute_exlusive_gateway(self, gateway:ExclusiveGateway, output:str) -> Node:
+    def _execute_exlusive_gateway(self, gateway:ExclusiveGateway, data_cache:List) -> Node:
         """Execute the exclusive gateway.
         This includes also dynamic condition selection with the help of the LLM.
 
         :param gateway: exclusive gateway to be executed
-        :param output: output of the previous task
+        :param data_cache: cached data from the previous tasks
         :raises Exception: If no condition can be chosen for the gateway
         :raises Exception: If multiple conditions are selected
         :raises Exception: Random error
@@ -58,7 +55,7 @@ class ProcessExecutor():
         sys_message = {"role": "system", "content": get_sys_message()}
         prompt = {
             "role": "user",
-            "content": get_prompt(gateway.name, conditions, self.data_cache)
+            "content": get_prompt(gateway.name, conditions, data_cache)
         } 
         message = [sys_message, prompt]
         # Request the LLM to select the condition - dynamic decision making
@@ -88,12 +85,12 @@ class ProcessExecutor():
         else:
             raise DecisionMakingError(f"Unkown error for '{gateway.name}'")
     
-    def _execute_task(self, task:Task, output:str) -> Tuple[Node, str]:
+    def _execute_task(self, task:Task, data_cache:List) -> Tuple[Node, str]:
         """Execute the task. 
         Contains the selection of the connector and the assignment of the parameters.
 
         :param task: task to be executed
-        :param output: output of the previous task
+        :param data_cache: cached data from the previous tasks
         :return: target node of the task and the output of the task
         """
         # Select the connector which corresponds to the task
@@ -102,7 +99,7 @@ class ProcessExecutor():
         arguments = self.assignator.assign(
             connector,
             self.textual_workflow,
-            self.data_cache
+            data_cache
         )
         self._provide_logging(f"{connector} is selected with arguments: {arguments}")
 
@@ -112,17 +109,17 @@ class ProcessExecutor():
         except Exception as e:
             raise FunctionError(f"connector {connector} throws {e}")
         self._provide_logging(f"Output of the function: {output}")
-        # add output to global output storage
-        self.data_cache.append({connector: output})
+        # add output to data cache
+        data_cache.append({connector: output})
         # Get the target node of the task
         target_node = self.process_processor.get_target_node(task)
-        return (target_node, output)
+        return (target_node, data_cache)
     
-    def _navigate_process(self, current_node:Node, output:str) -> None:
+    def _navigate_process(self, current_node:Node, data_cache:list) -> None:
         """Iterate through the workflow. Designed to be recursive.
 
         :param current_node: current node which is inspected
-        :param output: output of the previous task
+        :param data_cache: cached data
         """
         while True:
             if self.process_processor.is_start_event(current_node):
@@ -130,18 +127,19 @@ class ProcessExecutor():
                 current_node = self.process_processor.get_target_node(current_node)
             elif self.process_processor.is_task(current_node):
                 self._provide_logging(f"Execution of task: {current_node.get_name()}")
-                current_node, output = self._execute_task(current_node, output)
+                current_node, data_cache = self._execute_task(current_node, data_cache)
             elif self.process_processor.is_exclusive_gateway(current_node):
                 self._provide_logging(f"Execution of exclusive gateway: {current_node.get_name()}")
-                current_node = self._execute_exlusive_gateway(current_node, output)
+                current_node = self._execute_exlusive_gateway(current_node, data_cache)
             elif self.process_processor.is_parallel_gateway(current_node):
                 target_nodes = self.process_processor.get_target_nodes(current_node)
                 target_nodes = [n[0] for n in target_nodes]
                 self._provide_logging("Parallelity started")
                 # Iterate through the target nodes of the parallel gateway
-                for node in target_nodes:
+                temp_data_cache = [data_cache.copy() for _ in target_nodes]
+                for i, node in enumerate(target_nodes):
                     # Calle the target node recursively
-                    self._navigate_process(node, output)
+                    self._navigate_process(node, temp_data_cache[i])
                 self._provide_logging("Parallelity ended")
                 break
             elif self.process_processor.is_end_event(current_node):
@@ -157,9 +155,9 @@ class ProcessExecutor():
         """
         # Get start event to start the process      
         current_node = self.process_processor.get_start_node()
-        # Start event doesnt possess any output
-        output = ""
-        self._navigate_process(current_node, output)
+        # Initialize data cache
+        data_cache = []
+        self._navigate_process(current_node, data_cache)
 
     def get_log(self)->str:
         return self.logs           

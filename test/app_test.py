@@ -9,10 +9,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from src.execution.execution import WorkflowExecutor
-from src.modeling.generate_processor import generate_workflow 
-
-def render_pdf(current_time, name, workflow, workflow_str, workflow_image, execution_text, folder_path, iterations):
+from src.execution.execution import ProcessExecutor
+from src.modeling.generate_processor import generate_processor
+def render_pdf(current_time, name, workflow, workflow_str, process_image, execution_text, folder_path, iterations):
    env = Environment(loader=FileSystemLoader('.'))
    # Get the rendering template and render it
    template = env.get_template("test/test_template.html")
@@ -21,7 +20,7 @@ def render_pdf(current_time, name, workflow, workflow_str, workflow_image, execu
       name=name,
       workflow=workflow,
       process_text=workflow_str.replace('\n', '<br>'),
-      process_image=workflow_image+'.png',
+      process_image=process_image+'.png',
       execution_text=execution_text.replace('\n', '<br>'),
       iterations=iterations
    )
@@ -32,8 +31,8 @@ def render_pdf(current_time, name, workflow, workflow_str, workflow_image, execu
 
    # Delete the workflow image and gviz file
    try:
-      os.remove(workflow_image)
-      os.remove(workflow_image + '.png')
+      os.remove(process_image)
+      os.remove(process_image + '.png')
    except:
       pass
 
@@ -56,28 +55,28 @@ if __name__ == '__main__':
          os.makedirs(folder_path)
       for index, row in workflow.iterrows():
          content = row['content']
-         workflow_str = ''
-         workflow_image = ''
+         process_str = ''
+         process_image = ''
          execution_log = ''
          try:
-            # Generate the workflow
-            workflow_processor, iterations = generate_workflow(content, 10)
-            workflow_str = workflow_processor.__str__()
-            worklfow_gviz = workflow_processor.get_bpmn()
-            workflow_image = f'{folder_path}/{index}'
-            worklfow_gviz.render(workflow_image, format='png')
+            # Generate the process processor
+            process_processor, iterations = generate_processor(content, 10)
+            process_str = process_processor.__str__()
+            process_gviz = process_processor.get_bpmn()
+            process_image = f'{folder_path}/{index}'
+            process_gviz.render(process_image, format='png')
             try:
-               # Execute the workflow
-               executor = WorkflowExecutor(content, workflow_processor)
+               # Execute the process
+               executor = ProcessExecutor(content, process_processor)
                executor.run()
                execution_log = executor.get_log()
-               render_pdf(current_time, index, content, workflow_str, workflow_image, execution_log, folder_path, iterations)
+               render_pdf(current_time, index, content, process_str, process_image, execution_log, folder_path, iterations)
             # If an error occurs during the execution, render the pdf with the error
             except Exception as e:
                error = f'<span style="color: red;">{str(e)}</span>'
-               render_pdf(current_time, index, content, workflow_str, workflow_image, error, folder_path, iterations)
+               render_pdf(current_time, index, content, process_str, process_image, error, folder_path, iterations)
          # If an error occurs during the generation, render the pdf with the error
          except Exception as e:
             error = f'<span style="color: red;">{str(e)}</span>'
-            render_pdf(current_time, index, content, error, workflow_image, execution_log, folder_path, None)
+            render_pdf(current_time, index, content, error, process_image, execution_log, folder_path, None)
          print("++++++++++++++++++")

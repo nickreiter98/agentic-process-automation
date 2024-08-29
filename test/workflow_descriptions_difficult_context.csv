@@ -24,3 +24,20 @@ email_response,After condition no end node can be placed. Activity to conditiona
 If a response is necessary, generate an automated reply and send it to nick.reiter@hotmail.de. Additionally, save the response locally on your PC.
 If no response is required, create a new Google Doc with the email content as its content."
 create_calender_event,Works,"Access the Google Doc identified by the ID ""1TT0VkjE69_sgEL2Zse65Mw_OCnoHy6dStz8QUq2O6mE"" and proceed to create a calendar event based on the content found within."
+negative_user_story,,"As an end-user, I require the capability to apply chronological filters to search output, enabling the efficient retrieval of the most contemporary publications. easily find the most recent articles."
+negative_story,,"John, roused by the repetitive chime of his alarm, lethargically extended his arm to deactivate it. He then ambled toward the restroom to cleanse his teeth. Subsequent to this, he prepared a caffeinated beverage and situated himself near the window, observing the dawn while gradually consuming his drink turn it off, then stumbled to the bathroom to brush his teeth. After that, he brewed a cup of coffee and sat by the window, watching the sunrise as he sipped his drink."
+negative_personal_journey,,"Today was marked by high productivity. The day commenced with a brisk morning exercise, followed by an afternoon dedicated to refining a presentation. The evening was concluded with a nostalgic meal, reconnecting with an old acquaintance."
+negative_historical,,"In the year 1492, Christopher Columbus embarked on a voyage from the Kingdom of Spain. His expedition led him to the New World, specifically making landfall on an island within the Bahamian archipelago. In the ensuing years, he undertook three additional journeys, charting portions of Central and South American territories."
+negative_receipt,,"Initiate the preheating of the oven to 350°F. In a capacious mixing vessel, amalgamate flour, granulated sugar, and leavening agent. In a separate container, vigorously blend eggs, dairy, and liquefied butter. Integrate the liquid mixture into the dry components, then transfer the resultant batter into a prepared baking dish. Subject the dish to baking for 30 minutes or until a golden hue is achieved."
+negative_itinerary,,"Day 1: Upon arrival in Paris, proceed to check into the designated accommodation and schedule an evening visit to the Eiffel Tower. Day 2: Allocate the morning to exploring the Louvre Museum and the afternoon to a leisurely stroll through the Tuileries Garden. Day 3: Embark on an excursion to the Palace of Versailles for the day.
+
+"
+negative_diary,,"April 12th: The day was delightful. The morning was spent tending to the garden, with new roses being planted. The afternoon involved engrossing oneself in a captivating book on medieval history. The evening was dedicated to familial bonding, sharing stories and enjoying laughter."
+negative_execution_health,,"Extract the health records for the individual identified by ‘NRR16543’. Should there be any indications of illness within the preceding week, dispatch an alert to the individual."
+negative_execution_crime_record,,"Procure the criminal history associated with the individual ‘Jon Doe’. If available, condense and archive the information. If absent, cease further action."
+negative_execution_carsharing,,"Gather comprehensive data pertaining to individuals who operated the vehicle registered as ‘B-DE-112233’ over the past four days. Subsequently, assess whether any instances of excessive speed were recorded during this period."
+negative_execution_param_1,,Obtain the tracking chronology of the parcel designated by the identifier ‘124545’ and thereafter retrieve associated financial account information.
+negative_execution_param_2,,"Acquire the geographical coordinates for the metropolis known as ‘Berlin’ and follow this by obtaining a summary of recent financial transactions from a linked account.
+
+"
+negative_execution_param_3,,Access the most recent email in your inbox and generate a calendar event derived from its content.

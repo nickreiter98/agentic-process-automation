@@ -1,4 +1,4 @@
-from src.modelling.workflow_processor import WorkflowProcessor
+from src.modeling.process_processor import ProcessProcessor
 
 # Provide the right generation of models from the textual description
 d1 = (
@@ -8,7 +8,7 @@ d1 = (
     " shipped. if no, the transaction is aborted."
 )
 def m1():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     register = model.create_task("register for app")
@@ -42,7 +42,7 @@ d2 = (
     " also send a message to the support team."
 )
 def m2():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     bank_account = model.create_task("get bank account of user 214423")
@@ -68,7 +68,7 @@ d3 = (
     " checking whether the sending was successful"
 )
 def m3():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     extract_info = model.create_task(
@@ -104,7 +104,7 @@ d4 = (
     " of them D is following"
 )
 def m4():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     a = model.create_task("A")
@@ -133,11 +133,11 @@ d5 = (
 )
 
 def m5():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     get_a = model.create_task("get a")
-    check_a = model.create_task("check whether a is a large number")
+    check_a = model.create_exclusive_gateway("check whether a is a large number")
     send_message = model.create_task("send message")
     end_1 = model.create_end_event()
     end_2 = model.create_end_event()
@@ -157,7 +157,7 @@ de1 = (
     " product to the cart."
 )
 def me1():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     register = model.create_task("register for app")
@@ -184,7 +184,7 @@ de2 = (
     " status of the ticket to the user and also to the support team."
 )
 def me2():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     get_status = model.create_task("get status of user ticket 123455")
@@ -208,7 +208,7 @@ de3 = (
     " D are simultaneously executed. After C and D, E is executed."
 )
 def me3():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     a = model.create_task("A")
@@ -239,7 +239,7 @@ de4 = (
     " D are triggered"
 )
 def me4():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     a = model.create_task("A")
@@ -278,7 +278,7 @@ de5 = (
 )
 
 def me5():
-    model = WorkflowProcessor()
+    model = ProcessProcessor()
 
     start = model.create_start_event()
     get_water_level = model.create_task("get current water level of the Rhine")

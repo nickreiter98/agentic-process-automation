@@ -3,10 +3,10 @@ import re
 import json
 
 from pm4py.objects.bpmn.obj import BPMN
-from src.repository.repository import Repository
-from src.execution.handler import FunctionSelector, ParameterAssignator
+from src.registry.registry import Registry
+from src.execution.task import FunctionSelector, ParameterAssignator
 from src.execution.prompt_exclusive_gateway import get_sys_message, get_prompt
-from src.modelling.workflow_processor import WorkflowProcessor
+from src.modeling.process_processor import ProcessProcessor
 from src.utils.open_ai import OpenAIConnection
 from src.utils.errors import FunctionError, DecisionMakingError
 
@@ -19,17 +19,17 @@ ParallelGateway: TypeAlias = BPMN.ParallelGateway
 Node: TypeAlias = BPMN.BPMNNode
 Edge: TypeAlias = BPMN.Flow
 
-# TODO: Check and probably change the use of output and output_storage
+# TODO: Check and probably change the use of output and data_cache
     
-class WorkflowExecutor():
-    def __init__(self, textual_workflow: str, workflow_processor: WorkflowProcessor):
-        self.repository = Repository()
+class ProcessExecutor():
+    def __init__(self, textual_workflow: str, process_processor: ProcessProcessor):
+        self.registry = Registry()
         self.textual_workflow = textual_workflow
         self.logs = ""
-        self.output_storage = []
-        self.workflow_processor = workflow_processor 
-        self.selector = FunctionSelector(self.repository)
-        self.assignator = ParameterAssignator(self.repository)
+        self.data_cache = []
+        self.process_processor = process_processor 
+        self.selector = FunctionSelector(self.registry)
+        self.assignator = ParameterAssignator(self.registry)
         self.llm_connection = OpenAIConnection()
 
     def _execute_exlusive_gateway(self, gateway:ExclusiveGateway, output:str) -> Node:
@@ -46,7 +46,7 @@ class WorkflowExecutor():
         DICT_PATTERN = r"{(.*?)}"
         ERROR_PATTERN = r"Condition error"
 
-        target_nodes = self.workflow_processor.get_target_nodes(gateway)
+        target_nodes = self.process_processor.get_target_nodes(gateway)
         # Create a dictionary with the node as key and the condition as value
         node_2_condition = {n[0]: n[1] for n in target_nodes}
         # Create a dictionary with the condition as key and the node as value
@@ -58,7 +58,7 @@ class WorkflowExecutor():
         sys_message = {"role": "system", "content": get_sys_message()}
         prompt = {
             "role": "user",
-            "content": get_prompt(gateway.name, conditions, output)
+            "content": get_prompt(gateway.name, conditions, self.data_cache)
         } 
         message = [sys_message, prompt]
         # Request the LLM to select the condition - dynamic decision making
@@ -90,61 +90,61 @@ class WorkflowExecutor():
     
     def _execute_task(self, task:Task, output:str) -> Tuple[Node, str]:
         """Execute the task. 
-        Contains the selection of the interface and the assignment of the parameters.
+        Contains the selection of the connector and the assignment of the parameters.
 
         :param task: task to be executed
         :param output: output of the previous task
         :return: target node of the task and the output of the task
         """
-        # Select the interface which corresponds to the task
-        interface = self.selector.select(task)
-        # Assign the parameters of the interface
+        # Select the connector which corresponds to the task
+        connector= self.selector.select(task)
+        # Assign the parameters of the connector
         arguments = self.assignator.assign(
-            interface,
+            connector,
             self.textual_workflow,
-            self.output_storage
+            self.data_cache
         )
-        self._provide_logging(f"{interface} is selected with arguments: {arguments}")
+        self._provide_logging(f"{connector} is selected with arguments: {arguments}")
 
         try:
-            # Execute the interface with the arguments
-            output = self.repository.retrieve_interface(interface)(**arguments)
+            # Execute the connector with the arguments
+            output = self.registry.retrieve_connector(connector)(**arguments)
         except Exception as e:
-            raise FunctionError(f"interface {interface} throws {e}")
+            raise FunctionError(f"connector {connector} throws {e}")
         self._provide_logging(f"Output of the function: {output}")
         # add output to global output storage
-        self.output_storage.append({interface: output})
+        self.data_cache.append({connector: output})
         # Get the target node of the task
-        target_node = self.workflow_processor.get_target_node(task)
+        target_node = self.process_processor.get_target_node(task)
         return (target_node, output)
     
-    def _iterate_workflow(self, current_node:Node, output:str) -> None:
+    def _navigate_process(self, current_node:Node, output:str) -> None:
         """Iterate through the workflow. Designed to be recursive.
 
         :param current_node: current node which is inspected
         :param output: output of the previous task
         """
         while True:
-            if self.workflow_processor.is_start_event(current_node):
+            if self.process_processor.is_start_event(current_node):
                 self._provide_logging("Process execution started")
-                current_node = self.workflow_processor.get_target_node(current_node)
-            elif self.workflow_processor.is_task(current_node):
+                current_node = self.process_processor.get_target_node(current_node)
+            elif self.process_processor.is_task(current_node):
                 self._provide_logging(f"Execution of task: {current_node.get_name()}")
                 current_node, output = self._execute_task(current_node, output)
-            elif self.workflow_processor.is_exclusive_gateway(current_node):
+            elif self.process_processor.is_exclusive_gateway(current_node):
                 self._provide_logging(f"Execution of exclusive gateway: {current_node.get_name()}")
                 current_node = self._execute_exlusive_gateway(current_node, output)
-            elif self.workflow_processor.is_parallel_gateway(current_node):
-                target_nodes = self.workflow_processor.get_target_nodes(current_node)
+            elif self.process_processor.is_parallel_gateway(current_node):
+                target_nodes = self.process_processor.get_target_nodes(current_node)
                 target_nodes = [n[0] for n in target_nodes]
                 self._provide_logging("Parallelity started")
                 # Iterate through the target nodes of the parallel gateway
                 for node in target_nodes:
                     # Calle the target node recursively
-                    self._iterate_workflow(node, output)
+                    self._navigate_process(node, output)
                 self._provide_logging("Parallelity ended")
                 break
-            elif self.workflow_processor.is_end_event(current_node):
+            elif self.process_processor.is_end_event(current_node):
                 self._provide_logging("Process execution ended")
                 break
 
@@ -156,10 +156,10 @@ class WorkflowExecutor():
         """Start the execution of the workflow
         """
         # Get start event to start the process      
-        current_node = self.workflow_processor.get_start_node()
+        current_node = self.process_processor.get_start_node()
         # Start event doesnt possess any output
         output = ""
-        self._iterate_workflow(current_node, output)
+        self._navigate_process(current_node, output)
 
     def get_log(self)->str:
         return self.logs           

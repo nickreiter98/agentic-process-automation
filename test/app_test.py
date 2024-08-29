@@ -9,8 +9,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from src.execution.executor import WorkflowExecutor
-from src.modelling.workflow_generation import generate_workflow 
+from src.execution.execution import WorkflowExecutor
+from src.modeling.generate_processor import generate_workflow 
 
 def render_pdf(current_time, name, workflow, workflow_str, workflow_image, execution_text, folder_path, iterations):
    env = Environment(loader=FileSystemLoader('.'))
@@ -44,7 +44,7 @@ if __name__ == '__main__':
    if not os.path.exists(glob_folder_path):
       os.makedirs(glob_folder_path)
 
-   names = ["bullet_points", "normal", "difficult_context"]
+   names = ["normal", "bullet_points", "difficult_context"]
    workflows = []
    for name in names:
       workflows.append(pd.read_csv(f'test/workflow_descriptions_{name}.csv', index_col=0))
@@ -73,11 +73,11 @@ if __name__ == '__main__':
                execution_log = executor.get_log()
                render_pdf(current_time, index, content, workflow_str, workflow_image, execution_log, folder_path, iterations)
             # If an error occurs during the execution, render the pdf with the error
-            except (Exception, RuntimeError) as e:
-               error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
+            except Exception as e:
+               error = f'<span style="color: red;">{str(e)}</span>'
                render_pdf(current_time, index, content, workflow_str, workflow_image, error, folder_path, iterations)
          # If an error occurs during the generation, render the pdf with the error
-         except (Exception, RuntimeError) as e:
-            error = f'<span style="color: red;">{type(e).__name__}: {str(e)}</span>'
-            render_pdf(current_time, index, content, error, workflow_image, execution_log, folder_path, iterations)
+         except Exception as e:
+            error = f'<span style="color: red;">{str(e)}</span>'
+            render_pdf(current_time, index, content, error, workflow_image, execution_log, folder_path, None)
          print("++++++++++++++++++")

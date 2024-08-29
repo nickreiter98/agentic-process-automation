@@ -3,21 +3,20 @@ import streamlit as st
 
 from datetime import date
 
-from src.execution.executor import WorkflowExecutor
-from src.modelling.workflow_generation import generate_workflow
-
+from src.modeling.generate_processor import generate_processor
+from src.execution.execution import ProcessExecutor
 
 def run_model_generator_app():
     subprocess.run(["streamlit", "run", __file__])
 
 
-def _modell(textual_workflow: str):
-    workflow_processor, _ = generate_workflow(textual_workflow)
-    return workflow_processor
+def _model(textual_workflow: str):
+    process_processor, _ = generate_processor(textual_workflow)
+    return process_processor
 
 
-def _execute(workflow_processor, textual_workflow: str):
-    executor = WorkflowExecutor(textual_workflow, workflow_processor)
+def _execute(process_processor, textual_workflow: str):
+    executor = ProcessExecutor(textual_workflow, process_processor)
     executor.run()
     return executor
 
@@ -53,7 +52,7 @@ def run_app():
 
     if submit_button:
         try:
-            st.session_state["model_gen"] = _modell(textual_workflow)
+            st.session_state["model_gen"] = _model(textual_workflow)
             st.session_state["feedback"] = []
         except (Exception, RuntimeError) as e:
             st.error(body=str(e), icon="⚠️")

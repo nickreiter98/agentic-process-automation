@@ -4,7 +4,7 @@ import re
 
 from src.utils.open_ai import OpenAIConnection
 from src.execution import prompt_arguments, prompt_selection
-from src.repository.repository import Repository
+from src.registry.registry import Registry
 from src.utils.errors import FunctionSelectorError, ParameterAssignatorError
 
 from openai import OpenAI
@@ -23,24 +23,24 @@ Edge: TypeAlias = BPMN.Flow
 
 
 class FunctionSelector:
-    def __init__(self, repository: Repository):
+    def __init__(self, registry: Registry):
         self.llm_connection = OpenAIConnection()
-        self.repository = repository
+        self.registry = registry
 
     def select(self, task: Node) -> str:
-        """Selects the interface for a given task.
+        """Selects the connector for a given task.
 
-        :param task: the task for which the interface should be selected
-        :raises Exception: No interface can be mapped to the task
-        :raises Exception: Multiple interfaces selected
+        :param task: the task for which the connector should be selected
+        :raises Exception: No connector can be mapped to the task
+        :raises Exception: Multiple connectors selected
         :raises Exception: Random error
-        :return: the selected interface
+        :return: the selected connector
         """
         DICT_PATTERN = r"{(.*?)}"
         ERROR_PATTERN = r"Selection error"
 
         # Create the prompt for function selection
-        json_representations = self.repository.retrieve_json_representations()
+        json_representations = self.registry.retrieve_json_representations()
         sys_message = {
             "role": "system",
             "content": prompt_selection.get_sys_message(json_representations)
@@ -53,37 +53,37 @@ class FunctionSelector:
         # Selection lead to error
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
             raise FunctionSelectorError(
-                f"No interface can be mapped to the task '{task.name}'"
+                f"No connector can be mapped to the task '{task.name}'"
             )
         # Selection was successful
         elif re.search(DICT_PATTERN, response, re.DOTALL):
-            # Extract the interface as str
+            # Extract the connector as str
             match = re.search(DICT_PATTERN, response, re.DOTALL).group()
-            # Load the interface as a dictionary
-            interface = json.loads(match)
-            # Check if only one interface was selected
-            if len(interface) != 1:
+            # Load the connector as a dictionary
+            connector = json.loads(match)
+            # Check if only one connector was selected
+            if len(connector) != 1:
                 raise FunctionSelectorError(
-                f"Multiple interfaces selected for '{task.name}'"
+                f"Multiple connectors selected for '{task.name}'"
                 )
-            clear_name = list(interface.values())[0]
+            clear_name = list(connector.values())[0]
             return clear_name
         # Random error
         else:
             raise FunctionSelectorError(f"Unkown error for '{task.name}'")
 
 class ParameterAssignator:
-    def __init__(self, repository: Repository):
+    def __init__(self, registry: Registry):
         self.llm_connection = OpenAIConnection()
-        self.repository = repository
+        self.registry = registry
 
-    def assign(self, interface: str, textual_workflow: str, output_storage) -> dict:
-        """Assigns the parameters for a given interface.
+    def assign(self, connector: str, textual_workflow: str, data_cache) -> dict:
+        """Assigns the parameters for a given connector.
 
-        :param interface: the interface for which the parameters should be assigned
+        :param connector: the connector for which the parameters should be assigned
         :param textual_workflow: the textual representation of the workflow
-        :param output_storage: the output storage for the workflow
-        :raises Exception: No arguments can be assigned to the interface
+        :param data_cache: the output storage for the workflow
+        :raises Exception: No arguments can be assigned to the connector
         :raises Exception: random error
         :return: the assigned arguments
         """
@@ -98,9 +98,9 @@ class ParameterAssignator:
         prompt = {
             "role": "user",
             "content": prompt_arguments.get_prompt(
-                self.repository.retrieve_json_representation_by_name(interface),
+                self.registry.retrieve_json_representation_by_name(connector),
                 textual_workflow,
-                output_storage,
+                data_cache,
             )
         }
         message = [sys_message, prompt]
@@ -110,7 +110,7 @@ class ParameterAssignator:
         # Selection lead to error
         if re.search(ERROR_PATTERN, response, re.IGNORECASE):
             raise ParameterAssignator(
-                f"No parameters can be assigned to the interface '{interface}'"
+                f"No parameters can be assigned to the connector '{connector}'"
             )
         # Response was successful
         elif re.search(DICT_PATTERN, response, re.DOTALL):
@@ -121,4 +121,4 @@ class ParameterAssignator:
             return arguments
         # Random error
         else:
-            raise ParameterAssignatorError(f"Unkown error for '{interface}'")
+            raise ParameterAssignatorError(f"Unkown error for '{connector}'")

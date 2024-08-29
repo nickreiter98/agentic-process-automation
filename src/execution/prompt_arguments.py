@@ -78,18 +78,18 @@ def add_output_pattern():
     )
 
 
-def add_output_storage(output_storage: list[dict[dict]]) -> str:
-    if not output_storage:
+def add_data_chache(data_cache: list[dict[dict]]) -> str:
+    if not data_cache:
         return "No output has been stored yet.\n"
     else:
         text = "The output of the previous functions are:\n"
-        for i, output in enumerate(output_storage[::-1]):
+        for i, output in enumerate(data_cache[::-1]):
             assert output is not None
-            function_name = list(output.keys())[0]
-            function_output = output[function_name]
+            connector_name = list(output.keys())[0]
+            connector_output = output[connector_name]
             text += (
                 f"Function {i+1} step ago:\n"
-                f"{function_name} with the output --> {function_output}\n"
+                f"{connector_name} with the output --> {connector_output}\n"
             )
         return text
 
@@ -105,12 +105,11 @@ def get_sys_message():
 
 from typing import List
 
-
-def get_prompt(function: dict, textual_workflow: str, output_storage: List[str]):
+def get_prompt(signature: dict, textual_workflow: str, data_cache: List[str]):
     prompt = (
         f"Assign the parameter of provided function with arguments.\n"
-        f"- Head of the function arguments has to be assigned: {str(function)}\n"
-        f"- {add_output_storage(output_storage)}"
+        f"- Head of the function arguments has to be assigned: {str(signature)}\n"
+        f"- {add_data_chache(data_cache)}"
         f"- Workflow description: {textual_workflow}\n\n"
     )
     return prompt

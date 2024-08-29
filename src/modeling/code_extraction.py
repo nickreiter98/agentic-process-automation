@@ -2,7 +2,7 @@ import re
 
 from src.utils.errors import ModellingError, PythonCodeExtractionError
 
-def extract_final_python_code(response_text:str) -> str:
+def extract_python_code(response_text:str) -> str:
     """Extracts the final Python code snippet from the response text from LLM
     and returns an executable Python code snippet.
     Also checks whether the import statement is correct.
@@ -14,8 +14,8 @@ def extract_final_python_code(response_text:str) -> str:
     """
     # Define the pattern for the Python code snippet
     python_code_pattern = r"```python(.*?)```"
-    allowed_import_path = "src.modelling.workflow_processor"
-    allowed_import_class = "WorkflowProcessor"
+    allowed_import_path = "src.modeling.process_processor"
+    allowed_import_class = "ProcessProcessor"
     any_import_pattern = r"^\s*(from\s+\S+\s+import\s+\S+|import\s+\S+)"
     allowed_import_pattern = (
         r"^\s*(from\s+"

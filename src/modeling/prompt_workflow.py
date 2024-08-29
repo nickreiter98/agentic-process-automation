@@ -1,8 +1,8 @@
 import inspect
 
-from src.modelling.prompt_workflow_few_shots import SHOTS, SHOTS_WITH_ERRORS
+from src.modeling.prompt_workflow_few_shots import SHOTS, SHOTS_WITH_ERRORS
 
-IMPORT_STATEMENT = "from src.modelling.workflow_processor import WorkflowProcessor"
+IMPORT_STATEMENT = "from src.modeling.process_processor import ProcessProcessor"
 
 def add_role():
     return (
@@ -97,7 +97,7 @@ def add_least_to_most():
         " - create_task(name) generates a task node object with its label "
         "name. It takes 1 string argument for the activity label.\n"
         " - create_exclusive_gateway(name) generates an exclusive diverging "
-        "gateway object named after the condition's title. It takes 1 "
+        "gateway object named after the condition to check. It takes 1 "
         "string argument. Conditions and predecessors are set later with "
         "create_exclusive_edge.\n"
         " - create_parallel_gateway(index) generates a parallel diverging "
@@ -113,10 +113,13 @@ def add_least_to_most():
         "there's only one condition leading to a target. Ensure all events "
         "have a successor or target. Also, note that only diverging gateways "
         "are used, no converging ones!\n"
+        "A service task is a task which invokes services remotely or via API. "
+        "The tasks of the model must always be a service task. If one of the tasks "
+        "is not a service task, return an error messaage\n"
         "If the given process description cannot be modelled to a BPMN model, "
         "or it seems that the process description is incomplete or invalid,"
-        "return an error message. Return also an error message if the process "
-        "process is clearly not linked to a economic/IT/business process"
+        "return an error message.\n\n"
+
     )
 
 def add_process_description(process_description):
@@ -128,7 +131,9 @@ def add_self_evaluation():
         "snippets to top-level. Evaluate whether one node contains more than "
         "one origin. If yes, it is likely to be a parallel stream, whereby "
         "the parallel streams contain the same task. Model the task in the "
-        "parallel stream separately!\n\n"
+        "parallel stream separately!\n"
+        "Make sure whether the process description is unambigously related"
+        "to economic/IT/business process.\n"
     )
 
 def add_output_pattern():
@@ -139,7 +144,8 @@ def add_output_pattern():
         "text. Also do not indent any code snippet. The code snippet should "
         "be executable as a script.\n"
         "If the given process description cannot be modellled to a BPMN model, "
-        "return an error message. '''Modelling Error'''\n\n"
+        "or tasks are not service tasks return an error message."
+        " '''Modelling Error'''\n\n"
     )
 
 def add_few_shots():

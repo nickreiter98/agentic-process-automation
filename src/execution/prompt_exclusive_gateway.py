@@ -37,7 +37,7 @@ def get_sys_message():
     return sys_message
 
 
-def get_prompt(context: str, conditions: list[str], output: str):
+def get_prompt(context: str, conditions: list[str], data_cache: list[str]):
     prompt = "Choose one of the following conditions:\n"
 
     for i, condition in enumerate(conditions):
@@ -45,8 +45,18 @@ def get_prompt(context: str, conditions: list[str], output: str):
 
     prompt += (
         "based on the given data and context. \n"
-        f"- Data: {output} \n"
         f"- Context: {context} \n"
     )
 
+    prompt += "- Data:\n"
+    for i, output in enumerate(data_cache[::-1]):
+        assert output is not None
+        connector_name = list(output.keys())[0]
+        connector_output = output[connector_name]
+        prompt += (
+            f"Function {i+1} step ago:\n"
+            f"{connector_name} with the output --> {connector_output}\n"
+        )
+
+    print(prompt)
     return prompt

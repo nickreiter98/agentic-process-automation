@@ -280,8 +280,10 @@ def create_image_from_text(description:str) -> str:
     """
     # dalle cannot handle more than 1000 tokens
     description = description.split(" ")
-    if len(description) > 700:
-        description = " ".join(description[:700])
+    if len(description) > 100:
+        description = " ".join(description[:100])
+    else:
+        description = " ".join(description)
     client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
     response = client.images.generate(
         model="dall-e-2",
@@ -526,7 +528,8 @@ def _get_google_oauth_credentials() -> Credentials:
     return credentials
 
 def send_email_to(recipient: str, content: str, subject: str, file:str=None):
-    """sends an email to a given recipient. Optionally, a file can be attached to the email.
+    """sends an email to a given recipient. Optionally, a file (voice message, PDF
+    document, image, etc.) can be attached to the email.
 
     :param recipient: email address of the recipient
     :param content: content of the email to be sent

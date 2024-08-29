@@ -18,7 +18,7 @@ Node: TypeAlias = BPMN.BPMNNode
 Edge: TypeAlias = BPMN.Flow
 
 
-class WorkflowProcessor:
+class ProcessProcessor:
     def __init__(self):
         self.bpmn = bpmn_obj.BPMN()
         self.graph = None
